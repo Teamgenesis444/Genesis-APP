@@ -5,637 +5,189 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Plan Your Journey — GENESIS</title>
 
-  <!-- Theme + Fonts -->
-  <link rel="stylesheet" href="css/genesis-theme.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-
-  <!-- Leaflet (OpenStreetMap) -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
-  />
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""
-  ></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <style>
-    html, body {
-      margin: 0; padding: 0;
-      background: linear-gradient(120deg, var(--bg1), var(--bg2));
-      color: var(--text);
-      height: 100%;
-      overflow-x: hidden;
-      font-family: 'Poppins', sans-serif;
-    }
-
-    .app { max-width: 480px; margin: auto; }
-
-    .menu-btn {
-      border: 0; background: none; font-size: 20px; cursor: pointer;
-    }
-
-    .brand {
-      font-weight: 700; font-size: 20px;
-      background: linear-gradient(90deg, var(--primary), var(--accent));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
-
-    .points {
-      background: linear-gradient(90deg, var(--primary), var(--accent));
-      color: #00251f; padding: 6px 10px; border-radius: 20px; font-weight: 600;
-    }
-
-    .profile {
-      width: 38px; height: 38px; border-radius: 50%;
-      background: url('https://cdn-icons-png.flaticon.com/512/3135/3135715.png') center/cover;
-      border: 2px solid var(--accent);
-    }
-
-    .sidebar {
-      position: fixed; top: 0; left: -260px;
-      width: 240px; height: 100vh;
-      background: rgba(255, 255, 255, 0.92);
-      backdrop-filter: blur(12px);
-      box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
-      transition: .4s; z-index: 50; padding-top: 80px;
-    }
-
-    .sidebar.open { left: 0; }
-
-    .sidebar a {
-      display: block; padding: 14px 20px;
-      color: var(--text); font-weight: 600;
-      text-decoration: none;
-    }
-
-    .sidebar a:hover { background: rgba(0, 191, 166, 0.15); }
-
-    .close-btn {
-      position: absolute; top: 20px; right: 20px;
-      border: none; background: none; font-size: 18px; cursor: pointer;
-    }
-
-    h2 {
-      text-align: center; margin-top: 20px; color: var(--primary);
-    }
-
-    .form {
-      margin: 16px 16px 10px; padding: 16px;
-      background: var(--card);
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-    }
-
-    label {
-      font-weight: 600; font-size: 14px; color: var(--text);
-    }
-
-    input[type="text"], select {
-      width: 100%;
-      padding: 12px;
-      margin: 8px 0 14px;
-      border: 1px solid rgba(0,0,0,0.1);
-      border-radius: 10px;
-      font-family: inherit;
-      font-size: 14px;
-      background: rgba(255,255,255,0.8);
-      backdrop-filter: blur(6px);
-    }
-
-    button {
-      background: linear-gradient(90deg, var(--primary), var(--accent));
-      border: none;
-      padding: 12px 16px;
-      border-radius: 10px;
-      color: #00251f;
-      font-weight: 600;
-      width: 100%;
-      cursor: pointer;
-      transition: .3s;
-      position: relative;
-    }
-
-    button:hover { opacity: 0.9; transform: scale(1.02); }
-
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .secondary-btn {
-      background: white;
-      border: 1px dashed var(--primary);
-      color: var(--primary);
-      margin-bottom: 10px;
-    }
-
-    .loader {
-      display: none;
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(0,0,0,0.1);
-      border-top-color: var(--primary);
-      border-radius: 50%;
-      animation: spin 0.6s linear infinite;
-      margin-left: 8px;
-    }
-
-    button.loading .loader {
-      display: inline-block;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .map-wrapper {
-      margin: 0 16px 18px;
-      background: var(--card);
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
-
-    #map {
-      width: 100%;
-      height: 260px;
-    }
-
-    .map-hint {
-      font-size: 12px;
-      color: var(--muted);
-      padding: 8px 12px 12px;
-    }
-
-    .tip {
-      background: linear-gradient(120deg,#d8ffe9,#f0fff6);
-      padding: 12px 16px;
-      border-radius: 12px;
-      font-size: 13px;
-      margin: 0 16px 18px;
-      color: #045b48;
-      box-shadow: var(--shadow);
-      text-align: center;
-      animation: fadeIn 2s ease-in-out;
-    }
-
-    .error-msg {
-      background: linear-gradient(120deg, #ffe9e9, #fff5f5);
-      color: #c41e3a;
-      padding: 10px 14px;
-      border-radius: 10px;
-      font-size: 12px;
-      margin: 0 16px 12px;
-      display: none;
-    }
-
-    .error-msg.show {
-      display: block;
-      animation: fadeIn 0.3s ease-in-out;
-    }
-
-    @keyframes fadeIn {
-      0% { opacity: 0; transform: translateY(10px); }
-      100% { opacity: 1; transform: translateY(0); }
-    }
-
-    .footer {
-      text-align: center;
-      font-size: 12px;
-      color: var(--muted);
-      padding: 30px;
-    }
-
-    @media (max-width: 480px) {
-      .form { margin: 12px; padding: 14px; }
-      .map-wrapper { margin: 0 12px 16px; }
-      h2 { font-size: 1.3em; }
-    }
+    :root {--primary:#00bfa6;--accent:#53ffc9;--text:#00251f;--bg1:#e7fff5;--bg2:#c6ffe8;--shadow:0px 6px 15px rgba(0,0,0,0.1);}
+    body{margin:0;background:linear-gradient(120deg,var(--bg1),var(--bg2));font-family:Poppins,sans-serif;}
+    .nav{display:flex;justify-content:space-between;padding:14px 20px;font-weight:600;}
+    .brand{font-size:22px;color:var(--primary);}
+    .points{background:white;padding:8px 16px;border-radius:14px;font-size:14px;}
+    .form{background:white;margin:18px;padding:14px;border-radius:14px;box-shadow:var(--shadow);}
+    input,select{width:100%;padding:10px;margin:6px 0 16px;border-radius:10px;border:1px solid #ccc;}
+    button{width:100%;padding:12px;border:none;font-weight:600;border-radius:10px;cursor:pointer;}
+    .primary{background:linear-gradient(90deg,var(--primary),var(--accent));color:black;}
+    #map{width:100%;height:260px;border-radius:12px;}
+    .tip{margin:18px;padding:14px;border-radius:12px;background:#eafff3;text-align:center;color:#04694d;}
+    .error{display:none;background:#ffe7e7;padding:10px;border-radius:10px;margin:10px 18px;color:#b60025;}
   </style>
 </head>
-
 <body>
-  <div class="app">
-    <!-- Navbar -->
-    <div class="nav">
-      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-      <div class="brand">GENESIS</div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div class="points" id="pointsDisplay">🌱 0 pts</div>
-        <div class="profile"></div>
-      </div>
-    </div>
 
-    <!-- Sidebar (clean, premium) -->
-    <div class="sidebar" id="sidebar">
-      <button class="close-btn" onclick="toggleSidebar()">✕</button>
-      <a href="index.html">🏠 Home</a>
-      <a href="plan.html">🧭 Plan Journey</a>
-      <a href="report.html">🚨 Report</a>
-      <a href="impact.html">📊 Impact</a>
-      <a href="rewards.html">🎁 Rewards</a>
-      <a href="leaderboard.html">🏆 Leaderboard</a>
-      <a href="admin.html">🔒 Admin</a>
-      <a href="about.html">ℹ️ About</a>
-    </div>
+<div class="nav">
+  <div class="brand">GENESIS</div>
+  <div class="points" id="pointsDisplay">🌱 0 pts</div>
+</div>
 
-    <!-- Title -->
-    <h2>Plan Your Journey</h2>
+<h2 style="text-align:center;color:var(--primary);">Plan Your Journey</h2>
+<div class="error" id="errorMsg"></div>
 
-    <!-- Error Message -->
-    <div class="error-msg" id="errorMsg"></div>
+<div class="form">
+  <label>From:</label>
+  <input type="text" id="from" placeholder="Enter starting point...">
 
-    <!-- Journey Form -->
-    <div class="form">
-      <label>From:</label>
-      <input type="text" id="from" placeholder="Enter starting point (e.g., Velachery)" />
+  <label>To:</label>
+  <input type="text" id="to" placeholder="Destination...">
 
-      <button class="secondary-btn" type="button" id="locationBtn" onclick="useCurrentLocation()">
-        📍 Use my current location
-        <span class="loader"></span>
-      </button>
+  <label>Priority:</label>
+  <select id="priority">
+    <option value="balanced">🌿 Balanced</option>
+    <option value="fastest">🚀 Fastest</option>
+    <option value="greenest">🌱 Eco Route</option>
+  </select>
 
-      <label>To:</label>
-      <input type="text" id="to" placeholder="Enter destination (e.g., T. Nagar)" />
+  <button class="primary" onclick="planJourney()">🔍 Plan Route</button>
+</div>
 
-      <label>Priority:</label>
-      <select id="priority">
-        <option value="balanced">🌿 Balanced (AI Recommended)</option>
-        <option value="fastest">🚀 Fastest Route</option>
-        <option value="safest">🛡️ Safest Route</option>
-        <option value="greenest">🌱 Greenest Route</option>
-      </select>
+<div style="margin:16px;box-shadow:var(--shadow);border-radius:12px;overflow:hidden;">
+  <div id="map"></div>
+  <p style="font-size:12px;text-align:center;color:#333;padding:6px;">
+    💡 Tap on map to pick destination.
+  </p>
+</div>
 
-      <button type="button" id="planBtn" onclick="planJourney()">
-        🔍 Plan My Journey
-        <span class="loader"></span>
-      </button>
-    </div>
+<div class="tip" id="aiTip">AI analyzing nearby routes...</div>
 
-    <!-- Map (OpenStreetMap via Leaflet) -->
-    <div class="map-wrapper">
-      <div id="map"></div>
-      <div class="map-hint">
-        🗺️ Tip: Tap on the map to set your <b>destination</b>. We'll snap it to the nearest place in Chennai.
-      </div>
-    </div>
+<script>
+let map, fromMarker, toMarker, routeLine, fromCoords, toCoords;
 
-    <div class="tip" id="aiTip">
-      💡 AI Insight: Traffic on Mount Road is heavy — try Metro for faster travel 🌱
-    </div>
+document.getElementById("pointsDisplay").innerText = "🌱 " + (localStorage.getItem("genesis_points") || 420) + " pts";
 
-    <div class="footer">
-      © 2025 GENESIS — Smart, Safe, Sustainable Transit 💚
-    </div>
-  </div>
+initMap();
 
-  <script>
-    // Sidebar toggle
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('open');
+async function geocode(place){
+  if(!place.trim()) return null;
+  const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(place)}`);
+  const j = await r.json();
+  return j[0] || null;
+}
+
+async function reverseGeo(lat,lng){
+  const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+  const j = await r.json();
+  return j.display_name;
+}
+
+function markerStyle(color){
+  return L.divIcon({
+    className:"",
+    html:`<div style="width:18px;height:18px;border-radius:50%;background:${color};border:3px solid white;"></div>`
+  });
+}
+
+function initMap(){
+  map = L.map("map").setView([20.5937,78.9629],5);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+
+  map.on("click", async(e)=>{
+    toCoords = e.latlng;
+    if(toMarker) map.removeLayer(toMarker);
+    toMarker = L.marker(e.latlng, {icon:markerStyle("#ff5722")}).addTo(map);
+    document.getElementById("to").value = await reverseGeo(e.latlng.lat, e.latlng.lng);
+    drawRoute();
+  });
+}
+
+async function planJourney(){
+  const from = document.getElementById("from").value;
+  const to = document.getElementById("to").value;
+  const priority = document.getElementById("priority").value;
+
+  if(!from || !to) return showError("Enter both locations!");
+
+  const f = await geocode(from);
+  const t = await geocode(to);
+
+  if(!f || !t) return showError("❌ Location not found.");
+
+  fromCoords = f;
+  toCoords = t;
+
+  if(fromMarker) map.removeLayer(fromMarker);
+  if(toMarker) map.removeLayer(toMarker);
+
+  fromMarker = L.marker([f.lat,f.lon],{icon:markerStyle("#00bfa6")}).addTo(map);
+  toMarker = L.marker([t.lat,t.lon],{icon:markerStyle("#ff5722")}).addTo(map);
+
+  drawRoute(priority);
+
+  let points = Number(localStorage.getItem("genesis_points")||0)+10;
+  localStorage.setItem("genesis_points",points);
+  document.getElementById("pointsDisplay").innerText = "🌱 " + points + " pts";
+}
+
+async function drawRoute(priority="balanced"){
+  if(!fromCoords || !toCoords) return;
+
+  if(routeLine) map.removeLayer(routeLine);
+
+  let startLat = fromCoords.lat || fromCoords.latitude;
+  let startLon = fromCoords.lon || fromCoords.longitude;
+  let endLat = toCoords.lat || toCoords.latitude;
+  let endLon = toCoords.lon || toCoords.longitude;
+
+  // OSRM API with alternatives
+  const url = `https://router.project-osrm.org/route/v1/driving/${startLon},${startLat};${endLon},${endLat}?geometries=geojson&overview=full&alternatives=true`;
+
+  try{
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if(!data.routes || !data.routes.length){
+      showError("⚠ Couldn't find route."); 
+      return;
     }
 
-    // Fallback points from localStorage (auth.js may override with real Firestore value)
-    let fallbackPoints = parseInt(localStorage.getItem("genesis_points") || 420);
-    const pointsEl = document.getElementById("pointsDisplay");
-    if (pointsEl) {
-      pointsEl.innerText = "🌱 " + fallbackPoints + " pts";
+    // Choose route based on priority
+    let route;
+    if(priority==="fastest"){
+      route = data.routes.reduce((a,b)=>a.duration < b.duration ? a:b);
+    }else if(priority==="greenest"){
+      route = data.routes.reduce((a,b)=>a.distance < b.distance ? a:b);
+    }else{
+      // balanced: simple weighted (duration + distance/1000)
+      route = data.routes.reduce((a,b)=> (a.duration + a.distance/1000) < (b.duration + b.distance/1000) ? a:b);
     }
 
-    // ---------- ERROR HANDLING ----------
-    function showError(message) {
-      const errorEl = document.getElementById("errorMsg");
-      errorEl.textContent = message;
-      errorEl.classList.add("show");
-      setTimeout(() => {
-        errorEl.classList.remove("show");
-      }, 5000);
-    }
+    const coords = route.geometry.coordinates.map(c=>[c[1],c[0]]);
 
-    // ---------- LEAFLET MAP SETUP ----------
-    let map, fromMarker, toMarker, routeLine;
-    let fromCoords = null;
-    let toCoords = null;
-    let lastGeocodingTime = 0;
-    const GEOCODING_DELAY = 1000; // 1 second delay between API calls
+    routeLine = L.polyline(coords,{
+      color:"#00bfa6",
+      weight:5,
+      dashArray:"5,7",
+      opacity:0.9
+    }).addTo(map);
 
-    // Custom marker icons
-    const fromIcon = L.icon({
-      iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIxMiIgZmlsbD0iIzAwYmZhNiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIzIi8+PC9zdmc+',
-      iconSize: [32, 32],
-      iconAnchor: [16, 16]
-    });
+    map.fitBounds(routeLine.getBounds(),{padding:[40,40]});
 
-    const toIcon = L.icon({
-      iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIxMiIgZmlsbD0iI2ZmNTcyMiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIzIi8+PC9zdmc+',
-      iconSize: [32, 32],
-      iconAnchor: [16, 16]
-    });
+    let distance = (route.distance/1000).toFixed(1)+" km";
+    let time = Math.round(route.duration/60)+" min";
+    document.getElementById("aiTip").innerText = `🚀 Distance: ${distance} | ⏱ ETA: ${time}`;
 
-    function initMap() {
-      // Center on Chennai
-      map = L.map('map').setView([13.0827, 80.2707], 12);
+  }catch(err){
+    console.log(err);
+    showError("🚨 Routing server error.");
+  }
+}
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap'
-      }).addTo(map);
-
-      // Click on map to set destination
-      map.on('click', async (e) => {
-        toCoords = {
-          lat: e.latlng.lat,
-          lng: e.latlng.lng
-        };
-
-        if (toMarker) map.removeLayer(toMarker);
-        toMarker = L.marker([toCoords.lat, toCoords.lng], {icon: toIcon}).addTo(map);
-
-        // Reverse geocode to get a name (with rate limiting)
-        const name = await reverseGeocode(toCoords.lat, toCoords.lng);
-        const toInput = document.getElementById("to");
-        toInput.value = name || `Pinned: ${toCoords.lat.toFixed(4)}, ${toCoords.lng.toFixed(4)}`;
-
-        // Draw line if both points exist
-        updateRouteLine();
-      });
-
-      // If previous journey exists, preload
-      const prevFrom = localStorage.getItem("journey_from");
-      const prevTo = localStorage.getItem("journey_to");
-      if (prevFrom) document.getElementById("from").value = prevFrom;
-      if (prevTo) document.getElementById("to").value = prevTo;
-    }
-
-    // Update visual route line on map
-    function updateRouteLine() {
-      if (routeLine) map.removeLayer(routeLine);
-      if (fromCoords && toCoords) {
-        routeLine = L.polyline([
-          [fromCoords.lat, fromCoords.lng],
-          [toCoords.lat, toCoords.lng]
-        ], {
-          color: '#00bfa6',
-          weight: 3,
-          opacity: 0.7,
-          dashArray: '10, 10'
-        }).addTo(map);
-
-        // Fit map to show both markers
-        const bounds = L.latLngBounds(
-          [fromCoords.lat, fromCoords.lng],
-          [toCoords.lat, toCoords.lng]
-        );
-        map.fitBounds(bounds, {padding: [50, 50]});
-      }
-    }
-
-    // Reset coordinates when user types
-    document.getElementById("from").addEventListener("input", () => {
-      fromCoords = null;
-      if (fromMarker) {
-        map.removeLayer(fromMarker);
-        fromMarker = null;
-      }
-      if (routeLine) {
-        map.removeLayer(routeLine);
-        routeLine = null;
-      }
-    });
-
-    document.getElementById("to").addEventListener("input", () => {
-      toCoords = null;
-      if (toMarker) {
-        map.removeLayer(toMarker);
-        toMarker = null;
-      }
-      if (routeLine) {
-        map.removeLayer(routeLine);
-        routeLine = null;
-      }
-    });
-
-    // ---------- GEOLOCATION ----------
-    async function useCurrentLocation() {
-      if (!navigator.geolocation) {
-        showError("Geolocation not supported on this device.");
-        return;
-      }
-
-      const btn = document.getElementById("locationBtn");
-      btn.classList.add("loading");
-      btn.disabled = true;
-
-      navigator.geolocation.getCurrentPosition(async (pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-
-        fromCoords = { lat, lng };
-
-        if (fromMarker) map.removeLayer(fromMarker);
-        fromMarker = L.marker([lat, lng], {icon: fromIcon}).addTo(map);
-
-        map.setView([lat, lng], 14);
-
-        const name = await reverseGeocode(lat, lng);
-        document.getElementById("from").value = name || `My location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
-
-        btn.classList.remove("loading");
-        btn.disabled = false;
-
-        updateRouteLine();
-
-      }, (err) => {
-        console.error(err);
-        showError("Unable to fetch your location. Please check permissions.");
-        btn.classList.remove("loading");
-        btn.disabled = false;
-      }, {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-      });
-    }
-
-    // ---------- RATE LIMITED API CALLS ----------
-    async function waitForRateLimit() {
-      const now = Date.now();
-      const timeSinceLastCall = now - lastGeocodingTime;
-      if (timeSinceLastCall < GEOCODING_DELAY) {
-        await new Promise(resolve => setTimeout(resolve, GEOCODING_DELAY - timeSinceLastCall));
-      }
-      lastGeocodingTime = Date.now();
-    }
-
-    // ---------- GEOCODING HELPERS (OpenStreetMap Nominatim) ----------
-    async function geocodePlace(query) {
-      if (!query) return null;
-      
-      await waitForRateLimit();
-      
-      const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(query + ", Chennai, Tamil Nadu, India")}&limit=1`;
-      try {
-        const res = await fetch(url, {
-          headers: {
-            "Accept": "application/json",
-            "User-Agent": "GENESIS-Transit-App/1.0"
-          }
-        });
-        
-        if (!res.ok) {
-          throw new Error(`Geocoding failed: ${res.status}`);
-        }
-        
-        const data = await res.json();
-        if (!data || !data.length) return null;
-        const best = data[0];
-        return {
-          name: best.display_name,
-          lat: parseFloat(best.lat),
-          lng: parseFloat(best.lon)
-        };
-      } catch (e) {
-        console.error("Geocoding error:", e);
-        showError("Location search temporarily unavailable. Try again in a moment.");
-        return null;
-      }
-    }
-
-    async function reverseGeocode(lat, lng) {
-      await waitForRateLimit();
-      
-      const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`;
-      try {
-        const res = await fetch(url, {
-          headers: {
-            "Accept": "application/json",
-            "User-Agent": "GENESIS-Transit-App/1.0"
-          }
-        });
-        
-        if (!res.ok) {
-          throw new Error(`Reverse geocoding failed: ${res.status}`);
-        }
-        
-        const data = await res.json();
-        
-        // Extract a shorter, more readable name
-        const address = data.address || {};
-        const shortName = address.road || address.suburb || address.neighbourhood || address.city_district || data.display_name;
-        
-        return shortName || data.display_name || null;
-      } catch (e) {
-        console.error("Reverse geocode error:", e);
-        return null;
-      }
-    }
-
-    // ---------- PLAN JOURNEY ----------
-    async function planJourney() {
-      const fromInput = document.getElementById('from').value.trim();
-      const toInput = document.getElementById('to').value.trim();
-      const priority = document.getElementById('priority').value;
-
-      if (!fromInput || !toInput) {
-        showError("Please enter both starting point and destination.");
-        return;
-      }
-
-      const btn = document.getElementById("planBtn");
-      btn.classList.add("loading");
-      btn.disabled = true;
-
-      try {
-        // If coords not set yet, geocode them
-        if (!fromCoords) {
-          const geoFrom = await geocodePlace(fromInput);
-          if (!geoFrom) {
-            showError("Could not locate your starting point. Please try a different location or use the map.");
-            btn.classList.remove("loading");
-            btn.disabled = false;
-            return;
-          }
-          fromCoords = geoFrom;
-          
-          // Add marker
-          if (fromMarker) map.removeLayer(fromMarker);
-          fromMarker = L.marker([fromCoords.lat, fromCoords.lng], {icon: fromIcon}).addTo(map);
-        }
-
-        if (!toCoords) {
-          const geoTo = await geocodePlace(toInput);
-          if (!geoTo) {
-            showError("Could not locate your destination. Please try a different location or use the map.");
-            btn.classList.remove("loading");
-            btn.disabled = false;
-            return;
-          }
-          toCoords = geoTo;
-          
-          // Add marker
-          if (toMarker) map.removeLayer(toMarker);
-          toMarker = L.marker([toCoords.lat, toCoords.lng], {icon: toIcon}).addTo(map);
-        }
-
-        // Update visual route
-        updateRouteLine();
-
-        // Save to localStorage so compare.html can read them
-        localStorage.setItem("journey_from", fromInput);
-        localStorage.setItem("journey_to", toInput);
-        localStorage.setItem("journey_priority", priority);
-
-        localStorage.setItem("journey_from_lat", fromCoords.lat);
-        localStorage.setItem("journey_from_lng", fromCoords.lng);
-        localStorage.setItem("journey_to_lat", toCoords.lat);
-        localStorage.setItem("journey_to_lng", toCoords.lng);
-
-        // Small delay to show the route before redirect
-        await new Promise(resolve => setTimeout(resolve, 800));
-
-        // Redirect to Compare Page
-        window.location.href = "compare.html";
-        
-      } catch (error) {
-        console.error("Journey planning error:", error);
-        showError("Something went wrong. Please try again.");
-        btn.classList.remove("loading");
-        btn.disabled = false;
-      }
-    }
-
-    // ---------- AI Insight rotation ----------
-    const tips = [
-      "💡 Avoid T. Nagar between 5–7 PM — high crowd density expected.",
-      "🌱 Try combining Metro + Walk to save ~1.1 kg CO₂ today!",
-      "🚴 Chennai is sunny — good time for a cycle ride!",
-      "💚 AI recommends safer route via Guindy Metro Station."
-    ];
-
-    let tipIndex = 0;
-    setInterval(() => {
-      const tipEl = document.getElementById("aiTip");
-      if (!tipEl) return;
-      tipEl.innerHTML = tips[tipIndex];
-      tipIndex = (tipIndex + 1) % tips.length;
-    }, 6000);
-
-    // Init map once DOM loads
-    window.addEventListener("load", initMap);
-  </script>
-
-  <!-- Firebase CDN (Compat builds) -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-
-  <!-- Your Firebase init + auth logic -->
-  <script src="js/firebase-init.js"></script>
-  <script src="js/auth.js"></script>
+function showError(msg){
+  const box=document.getElementById("errorMsg");
+  box.style.display="block";
+  box.innerText=msg;
+  setTimeout(()=>box.style.display="none",4000);
+}
+</script>
 </body>
 </html>
