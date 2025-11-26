@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GENESIS — Smart Transit</title>
+
+  <!-- GENESIS THEME -->
+  <link rel="stylesheet" href="css/genesis-theme.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* Remove underline in sidebar links */
+    .sidebar a {
+      text-decoration: none !important;
+    }
+
+    /* Home specific styles */
+    .hero {
+      margin: 20px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      padding: 20px;
+      border-radius: 20px;
+      color: #00251f;
+      box-shadow: var(--shadow);
+      text-align: center;
+      animation: fadeIn 1.2s ease;
+    }
+
+    .hero h2 {
+      margin: 0;
+      font-size: 1.6em;
+      font-weight: 700;
+    }
+
+    .quick-actions {
+      margin: 20px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+
+    .quick-card {
+      background: var(--card);
+      padding: 18px;
+      border-radius: 16px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      font-weight: 600;
+      cursor: pointer;
+      transition: .3s;
+    }
+
+    .quick-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .quick-card span {
+      display: block;
+      margin-top: 6px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .ai-tip {
+      margin: 20px;
+      background: linear-gradient(120deg,#d8ffe9,#f0fff6);
+      padding: 14px;
+      border-radius: 16px;
+      font-size: 14px;
+      color: #045b48;
+      box-shadow: var(--shadow);
+      text-align: center;
+      animation: fadeIn 2s ease-in-out;
+    }
+
+    @media (max-width: 480px) {
+      .quick-actions { grid-template-columns: 1fr 1fr; }
+      .hero h2 { font-size: 1.3em; }
+    }
+  </style>
+
+</head>
+
+<body>
+  <div class="app">
+
+    <!-- Navbar -->
+    <div class="nav">
+      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+      <div class="brand">GENESIS</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="points" id="pointsDisplay">🌱 0 pts</div>
+        <div class="profile"></div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <button class="close-btn" onclick="toggleSidebar()">✕</button>
+      <a href="index.html">🏠 Home</a>
+      <a href="plan.html">🧭 Plan Journey</a>
+      <a href="compare.html">🗺️ Compare Routes</a>
+      <a href="journey.html">▶️ Journey</a>
+      <a href="report.html">🚨 Report</a>
+      <a href="impact.html">📊 Impact</a>
+      <a href="rewards.html">🎁 Rewards</a>
+      <a href="leaderboard.html">🏆 Leaderboard</a>
+      <a href="admin.html">🔒 Admin</a>
+      <a href="about.html">ℹ️ About</a>
+    </div>
+
+    <!-- Hero -->
+    <div class="hero">
+      <h2>Welcome to GENESIS</h2>
+      <p>Smart • Safe • Sustainable Transit</p>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <div class="quick-card" onclick="window.location.href='plan.html'">
+        🚀 Plan Journey
+        <span>Fast & Smart</span>
+      </div>
+
+      <div class="quick-card" onclick="window.location.href='report.html'">
+        🚨 Report Issue
+        <span>Help make Chennai safer</span>
+      </div>
+
+      <div class="quick-card" onclick="window.location.href='impact.html'">
+        🌱 Your Impact
+        <span>CO₂ Saved</span>
+      </div>
+
+      <div class="quick-card" onclick="window.location.href='leaderboard.html'">
+        🏆 Leaderboard
+        <span>Top Eco Commuters</span>
+      </div>
+    </div>
+
+    <!-- AI Tip -->
+    <div class="ai-tip" id="aiTip">
+      💡 AI Insight: Metro frequency is high — fastest travel today!
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      © 2025 GENESIS — Smart, Safe & Sustainable Mobility
+    </div>
+
+  </div>
+
+  <!-- Sidebar JS -->
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+  </script>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+  <script src="js/firebase-init.js"></script>
+  <script src="js/auth.js"></script>
+
+  <script>
+    // AI rotating messages
+    const tips = [
+      "🛣️ Traffic is mild on OMR — good time to travel.",
+      "🚇 Metro is running every 4 minutes — fastest option now.",
+      "🌱 You saved 1.4kg CO₂ this week. Keep going!",
+      "🛡️ Safety patrol active near Velachery today.",
+    ];
+
+    let tipIndex = 0;
+    setInterval(() => {
+      document.getElementById("aiTip").innerHTML = tips[tipIndex];
+      tipIndex = (tipIndex + 1) % tips.length;
+    }, 6000);
+
+    // Load user points
+    firebase.auth().onAuthStateChanged(async user => {
+      if (!user) return;
+
+      const db = firebase.firestore();
+      const info = await db.collection("users").doc(user.uid).get();
+
+      document.getElementById("pointsDisplay").innerText =
+        `🌱 ${info.data().points || 0} pts`;
+    });
+  </script>
+
+</body>
+</html>

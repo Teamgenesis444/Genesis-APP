@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Leaderboard — GENESIS</title>
+
+  <!-- Theme + Fonts -->
+  <link rel="stylesheet" href="css/genesis-theme.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    h2 {
+      text-align: center;
+      margin-top: 20px;
+      color: var(--primary);
+    }
+
+    .leaderboard {
+      margin: 20px;
+      padding: 20px;
+      background: var(--card);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .leader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.8);
+      margin-bottom: 10px;
+      border-radius: 12px;
+      transition: 0.3s;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .leader:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px rgba(0, 191, 166, 0.2);
+    }
+
+    .rank {
+      font-weight: 700;
+      color: var(--primary);
+      width: 30px;
+      text-align: center;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .user-info img {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--accent);
+    }
+
+    .user-info span {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .points {
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .top1 {
+      background: linear-gradient(90deg, #fff9e6, #fff4c2);
+      border-left: 4px solid gold;
+      animation: glow 2s infinite alternate;
+    }
+
+    .top2 {
+      background: linear-gradient(90deg, #eef7ff, #d7e8ff);
+      border-left: 4px solid silver;
+    }
+
+    .top3 {
+      background: linear-gradient(90deg, #f7e3da, #ffcfb3);
+      border-left: 4px solid #cd7f32;
+    }
+
+    @keyframes glow {
+      from { box-shadow: 0 0 8px rgba(255, 215, 0, 0.4); }
+      to { box-shadow: 0 0 20px rgba(255, 215, 0, 0.7); }
+    }
+
+    .tip {
+      background: linear-gradient(120deg, #d8ffe9, #f0fff6);
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      margin: 18px;
+      color: #045b48;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      .leaderboard { margin: 12px; padding: 16px; }
+      .user-info img { width: 40px; height: 40px; }
+      .leader { padding: 10px; }
+      .points { font-size: 14px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <!-- Navbar -->
+    <div class="nav">
+      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+      <div class="brand">GENESIS</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="points" id="pointsDisplay">🌱 0 pts</div>
+        <div class="profile"></div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <button class="close-btn" onclick="toggleSidebar()">✕</button>
+      <a href="index.html">🏠 Home</a>
+      <a href="plan.html">🧭 Plan Journey</a>
+      <a href="compare.html">🗺️ Compare Routes</a>
+      <a href="journey.html">▶️ Journey</a>
+      <a href="report.html">🚨 Report</a>
+      <a href="impact.html">📊 Impact</a>
+      <a href="rewards.html">🎁 Rewards</a>
+      <a href="leaderboard.html">🏆 Leaderboard</a>
+      <a href="admin.html">🔒 Admin</a>
+      <a href="about.html">ℹ️ About</a>
+    </div>
+
+    <!-- Title -->
+    <h2>Community Leaderboard</h2>
+
+    <!-- Leaderboard -->
+    <div class="leaderboard" id="leaderboard">
+      <!-- Dynamic user list generated via JS -->
+    </div>
+
+    <div class="tip" id="aiTip">
+      💡 AI Insight: Chennai commuters saved over <b>25,000 kg CO₂</b> this week — thanks to you! 🌱
+    </div>
+
+    <div class="footer">© 2025 GENESIS — Together for a Greener City 🌍</div>
+  </div>
+
+  <script>
+    // Sidebar toggle
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // Load points
+    let points = parseInt(localStorage.getItem("genesis_points") || 420);
+    document.getElementById("pointsDisplay").innerText = "🌱 " + points + " pts";
+
+    // Sample leaderboard data (replace with database later)
+    const leaderboardData = [
+      { name: "Arjun", img: "https://randomuser.me/api/portraits/men/11.jpg", points: 980 },
+      { name: "Meera", img: "https://randomuser.me/api/portraits/women/22.jpg", points: 920 },
+      { name: "Kiran", img: "https://randomuser.me/api/portraits/men/16.jpg", points: 880 },
+      { name: "Sahana", img: "https://randomuser.me/api/portraits/women/41.jpg", points: 780 },
+      { name: "Ravi", img: "https://randomuser.me/api/portraits/men/35.jpg", points: 750 },
+      { name: "Priyanshu", img: "https://randomuser.me/api/portraits/men/27.jpg", points: points }
+    ];
+
+    leaderboardData.sort((a, b) => b.points - a.points);
+
+    const board = document.getElementById("leaderboard");
+    leaderboardData.forEach((user, index) => {
+      const div = document.createElement("div");
+      div.className = `leader ${index === 0 ? 'top1' : index === 1 ? 'top2' : index === 2 ? 'top3' : ''}`;
+      div.innerHTML = `
+        <div class="rank">#${index + 1}</div>
+        <div class="user-info">
+          <img src="${user.img}" alt="${user.name}">
+          <span>${user.name}</span>
+        </div>
+        <div class="points">${user.points} pts</div>
+      `;
+      board.appendChild(div);
+    });
+
+    // Rotating AI Tips
+    const tips = [
+      "💡 Arjun tops the board! Try reporting hazards to earn 5 bonus points 🚨",
+      "🌱 Great work! Chennai saved 25,000+ kg CO₂ this week.",
+      "🚴 Cycling to work earns double points this month!",
+      "🎯 Keep it up! Consistency unlocks new eco-rewards soon."
+    ];
+    let i = 0;
+    setInterval(() => {
+      document.getElementById("aiTip").innerHTML = tips[i];
+      i = (i + 1) % tips.length;
+    }, 6000);
+  </script>
+<!-- your existing scripts -->
+<script src="some-other-script.js"></script>
+
+<!-- Firebase CDN (COMPAT builds, required for firebase.auth(), firebase.firestore(), etc.) -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<!-- Your Firebase init file -->
+<script src="js/firebase-init.js"></script>
+
+<!-- Optional: shared auth logic across pages -->
+<script src="js/auth.js"></script>
+
+
+</body>
+</html>

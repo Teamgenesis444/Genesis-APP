@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign Up — GENESIS</title>
+
+  <link rel="stylesheet" href="css/genesis-theme.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    .auth-box {
+      max-width: 380px;
+      margin: 50px auto;
+      padding: 30px;
+      background: var(--card);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      text-align: center;
+      animation: fadeIn 0.6s ease;
+    }
+    input { margin: 10px 0; }
+    .error { color: red; font-size: 13px; margin-top: 10px; min-height: 18px; }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+
+    <h2 class="text-center mt-3">Create Your GENESIS Account</h2>
+
+    <div class="auth-box">
+
+      <input type="text" id="name" placeholder="Full Name" />
+      <input type="email" id="email" placeholder="Email" />
+      <input type="password" id="password" placeholder="Password" />
+
+      <button onclick="signup()">Sign Up</button>
+
+      <p style="margin-top:14px;">Already have an account?
+        <a href="login.html">Login</a>
+      </p>
+
+      <div class="error" id="errorBox"></div>
+    </div>
+
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+  <script src="js/firebase-init.js"></script>
+  <script src="js/auth.js"></script>
+
+  <script>
+    async function signup() {
+      const name = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      if (!name || !email || !password) {
+        document.getElementById("errorBox").innerText = "Please fill all fields.";
+        return;
+      }
+
+      try {
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        const userCred = await auth.createUserWithEmailAndPassword(email, password);
+
+        await db.collection("users").doc(userCred.user.uid).set({
+          name,
+          email,
+          points: 0,
+          joined: new Date()
+        });
+
+        alert("Account created! Redirecting to login...");
+        window.location.href = "login.html";
+
+      } catch (err) {
+        document.getElementById("errorBox").innerText = err.message;
+      }
+    }
+  </script>
+
+</body>
+</html>

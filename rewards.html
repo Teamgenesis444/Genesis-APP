@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rewards & Redeem — GENESIS</title>
+
+  <!-- Theme + Fonts -->
+  <link rel="stylesheet" href="css/genesis-theme.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.10.2/lottie.min.js"></script>
+
+  <style>
+    /* 🌿 Rewards Specific Styling */
+    h2 {
+      text-align: center;
+      color: var(--primary);
+      margin-top: 20px;
+    }
+
+    .rewards-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+      padding: 20px;
+    }
+
+    .reward-card {
+      background: var(--card);
+      width: 150px;
+      text-align: center;
+      padding: 16px;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      transition: transform 0.3s ease;
+      position: relative;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .reward-card:hover {
+      transform: translateY(-6px) scale(1.04);
+    }
+
+    .reward-icon {
+      font-size: 38px;
+      margin-bottom: 8px;
+    }
+
+    .reward-title {
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+
+    button.redeem-btn {
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      color: #00251f;
+      font-weight: 600;
+      margin-top: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+      width: 100%;
+    }
+
+    button.redeem-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .tip {
+      background: linear-gradient(120deg, #d8ffe9, #f0fff6);
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      margin: 20px;
+      color: #045b48;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    canvas.confetti {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 100;
+    }
+
+    @media (max-width: 480px) {
+      .reward-card { width: 45%; }
+      .rewards-container { padding: 10px; }
+      .tip { margin: 14px; font-size: 12px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <!-- Navbar -->
+    <div class="nav">
+      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+      <div class="brand">GENESIS</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="points" id="pointsDisplay">🌱 0 pts</div>
+        <div class="profile"></div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <button class="close-btn" onclick="toggleSidebar()">✕</button>
+      <a href="index.html">🏠 Home</a>
+      <a href="plan.html">🧭 Plan Journey</a>
+      <a href="compare.html">🗺️ Compare Routes</a>
+      <a href="journey.html">▶️ Journey</a>
+      <a href="report.html">🚨 Report</a>
+      <a href="impact.html">📊 Impact</a>
+      <a href="rewards.html">🎁 Rewards</a>
+      <a href="leaderboard.html">🏆 Leaderboard</a>
+      <a href="admin.html">🔒 Admin</a>
+      <a href="about.html">ℹ️ About</a>
+    </div>
+
+    <!-- Page Title -->
+    <h2>Your Rewards</h2>
+
+    <!-- Rewards Grid -->
+    <div class="rewards-container">
+      <div class="reward-card">
+        <div class="reward-icon">🚆</div>
+        <div class="reward-title">Metro Pass (₹50)</div>
+        <button class="redeem-btn" onclick="redeemReward(100, this)">Redeem (100 pts)</button>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">☕</div>
+        <div class="reward-title">Café Voucher</div>
+        <button class="redeem-btn" onclick="redeemReward(60, this)">Redeem (60 pts)</button>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">🛒</div>
+        <div class="reward-title">Local Store Coupon</div>
+        <button class="redeem-btn" onclick="redeemReward(40, this)">Redeem (40 pts)</button>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">🌳</div>
+        <div class="reward-title">Plant a Tree</div>
+        <button class="redeem-btn" onclick="redeemReward(10, this)">Contribute (10 pts)</button>
+      </div>
+    </div>
+
+    <!-- AI Tip -->
+    <div class="tip" id="aiTip">
+      💡 AI Insight: Redeem your points to plant trees or earn local benefits — every action makes Chennai greener 🌿
+    </div>
+
+    <!-- Confetti -->
+    <canvas class="confetti" id="confettiCanvas"></canvas>
+
+    <div class="footer">
+      © Powered by Team GENESIS
+    </div>
+  </div>
+
+  <!-- JS Logic -->
+  <script>
+    // Sidebar toggle
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // Load points
+    let points = parseInt(localStorage.getItem("genesis_points") || 420);
+    document.getElementById("pointsDisplay").innerText = "🌱 " + points + " pts";
+
+    // Redeem reward
+    function redeemReward(cost, btn) {
+      if (points < cost) {
+        alert("Not enough GreenPoints to redeem this reward.");
+        return;
+      }
+
+      points -= cost;
+      localStorage.setItem("genesis_points", points);
+      document.getElementById("pointsDisplay").innerText = "🌱 " + points + " pts";
+      btn.disabled = true;
+      btn.innerText = "Redeemed ✅";
+
+      startConfetti();
+      setTimeout(stopConfetti, 2000);
+      setTimeout(() => {
+        document.getElementById("aiTip").innerHTML =
+          "💚 Great job! Your contribution makes the city cleaner & greener!";
+      }, 2500);
+    }
+
+    // Confetti animation
+    const confetti = document.getElementById("confettiCanvas");
+    const ctx = confetti.getContext("2d");
+    confetti.width = window.innerWidth;
+    confetti.height = window.innerHeight;
+    let particles = [];
+
+    function createConfetti() {
+      for (let i = 0; i < 80; i++) {
+        particles.push({
+          x: Math.random() * confetti.width,
+          y: Math.random() * confetti.height - confetti.height,
+          r: Math.random() * 6 + 2,
+          d: Math.random() * 10 + 5,
+          color: `hsl(${Math.random() * 360},100%,70%)`
+        });
+      }
+    }
+
+    function drawConfetti() {
+      ctx.clearRect(0, 0, confetti.width, confetti.height);
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        ctx.beginPath();
+        ctx.fillStyle = p.color;
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, true);
+        ctx.fill();
+        p.y += Math.cos(p.d) + 2;
+        p.x += Math.sin(p.d);
+        if (p.y > confetti.height) {
+          p.y = -10;
+          p.x = Math.random() * confetti.width;
+        }
+      }
+    }
+
+    let confettiInterval;
+    function startConfetti() {
+      particles = [];
+      createConfetti();
+      confettiInterval = setInterval(drawConfetti, 20);
+    }
+    function stopConfetti() {
+      clearInterval(confettiInterval);
+      ctx.clearRect(0, 0, confetti.width, confetti.height);
+    }
+
+    // Rotating AI tips
+    const tips = [
+      "💡 Did you know? Each GreenPoint = 10g CO₂ saved!",
+      "🎯 Redeem wisely! Metro rides give double impact this week.",
+      "🌱 Share your progress — inspire others to travel green!",
+      "💚 Keep moving you’re among the top 5% eco commuters!"
+    ];
+    let tipIndex = 0;
+    setInterval(() => {
+      document.getElementById("aiTip").innerHTML = tips[tipIndex];
+      tipIndex = (tipIndex + 1) % tips.length;
+    }, 6000);
+  </script>
+<!-- your existing scripts -->
+<script src="some-other-script.js"></script>
+
+<!-- Firebase CDN (COMPAT builds, required for firebase.auth(), firebase.firestore(), etc.) -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<!-- Your Firebase init file -->
+<script src="js/firebase-init.js"></script>
+
+<!-- Optional: shared auth logic across pages -->
+<script src="js/auth.js"></script>
+
+
+</body>
+</html>
+

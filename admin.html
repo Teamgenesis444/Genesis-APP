@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GENESIS — Chennai Insights</title>
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+<!-- 🌿 GENESIS THEME STYLESHEET -->
+<style>
+:root {
+  --primary: #00bfa6;
+  --accent: #63ff9c;
+  --bg1: #e8fff6;
+  --bg2: #ffffff;
+  --text: #0a3227;
+  --muted: #5a7c71;
+  --card: rgba(255, 255, 255, 0.95);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --font-main: 'Poppins', sans-serif;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-main);
+  color: var(--text);
+  background: linear-gradient(120deg, var(--bg1), var(--bg2));
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+/* APP WRAPPER */
+.app {
+  max-width: 480px;
+  margin: 18px auto;
+  background: var(--card);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* HEADER */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  color: #00251f;
+  padding: 12px 16px;
+}
+.brand {
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.5px;
+}
+.subtitle {
+  font-size: 12px;
+  color: #004d40;
+}
+header .btn {
+  background: #fff;
+  color: var(--primary);
+  border: none;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+header .btn:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+/* MAP */
+#map {
+  width: 100%;
+  height: 280px;
+  border-radius: 0;
+}
+
+/* CARD + SECTIONS */
+section {
+  padding: 16px;
+}
+.card {
+  background: var(--card);
+  padding: 16px;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  margin: 10px 0;
+  transition: 0.3s;
+}
+.card:hover { transform: translateY(-3px); }
+h3 {
+  color: var(--primary);
+  margin-bottom: 10px;
+}
+.muted {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* HAZARD + CROWD LIST */
+.hazard-item, .station {
+  background: white;
+  padding: 12px;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.hazard-item:hover, .station:hover { transform: translateY(-2px); }
+.badge {
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 12px;
+  color: #00251f;
+}
+.very-high { background: #ffb3b3; }
+.high { background: #ffd699; }
+.medium { background: #fff3b0; }
+.low { background: #b2f2bb; }
+
+/* AI Banner */
+.ai-banner {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  color: #00251f;
+  padding: 12px 16px;
+  border-radius: 16px;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+  display: none;
+  z-index: 999;
+}
+
+/* FOOTER */
+.footer {
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  padding: 18px;
+}
+</style>
+</head>
+<body>
+
+<div class="app fade-in">
+  <header>
+    <div>
+      <div class="brand">GENESIS</div>
+      <div class="subtitle">Chennai Insights · Smart Data</div>
+    </div>
+    <div style="display:flex;gap:6px;">
+      <button class="btn" id="btnReport">Report</button>
+      <button class="btn" id="btnAI">AI Tip</button>
+    </div>
+  </header>
+
+  <div id="map"></div>
+
+  <section>
+    <h3>🚨 Hazard Hotspots</h3>
+    <div id="hazardList"></div>
+  </section>
+
+  <section>
+    <h3>🌿 Chennai’s Green Impact</h3>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;">
+        <div>
+          <div style="font-weight:700;color:var(--primary)">24,567 kg</div>
+          <div class="muted">Total CO₂ Saved</div>
+        </div>
+        <div>
+          <div style="font-weight:700;color:var(--primary)">1089</div>
+          <div class="muted">Trees Equivalent</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h3>🚉 Crowd Levels</h3>
+    <div id="crowdList"></div>
+  </section>
+
+  <div class="ai-banner" id="aiBanner"></div>
+
+  <div class="footer">© 2025 GENESIS | Chennai Smart Dashboard</div>
+</div>
+
+<!-- Google Maps API -->
+<script async
+  src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap">
+</script>
+
+<script>
+let map, markers = {}, hazards = [
+  { id:1, name:"Velachery Metro", type:"Flooding", lat:13.0213, lng:80.2200, time:"1h ago" },
+  { id:2, name:"Guindy Metro", type:"Road Damage", lat:13.0110, lng:80.2160, time:"30m ago" },
+  { id:3, name:"Saidapet Metro", type:"Broken Signal", lat:13.0233, lng:80.2172, time:"15m ago" },
+  { id:4, name:"T. Nagar Bus Stop", type:"Accident", lat:13.0414, lng:80.2376, time:"5m ago" }
+];
+
+const crowdScores = {
+  velachery: 8, guindy: 5, saidapet: 7, tnagar: 9
+};
+
+function initMap() {
+  map = new google.maps.Map(document.getElementById("map"), {
+    center: { lat: 13.0827, lng: 80.2707 },
+    zoom: 12,
+    styles: [
+      { elementType: "geometry", stylers: [{ color: "#e8fff6" }] },
+      { elementType: "labels.text.fill", stylers: [{ color: "#0a3227" }] },
+      { featureType: "water", stylers: [{ color: "#b2f7ef" }] }
+    ],
+  });
+
+  renderHazards();
+  renderCrowds();
+}
+
+function renderHazards() {
+  const list = document.getElementById("hazardList");
+  list.innerHTML = "";
+  hazards.forEach(h => {
+    const div = document.createElement("div");
+    div.className = "hazard-item";
+    div.innerHTML = `<strong>${h.name}</strong><div class="muted">${h.type} · ${h.time}</div>`;
+    list.appendChild(div);
+
+    const color = h.type.includes("Accident") ? "#E53935" :
+                  h.type.includes("Flood") ? "#0a6aa0" : "#ff8c00";
+
+    const marker = new google.maps.Marker({
+      position: { lat: h.lat, lng: h.lng },
+      map,
+      title: h.name,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 8,
+        fillColor: color,
+        fillOpacity: 1,
+        strokeColor: color,
+      },
+    });
+    const infowindow = new google.maps.InfoWindow({
+      content: `<strong>${h.name}</strong><br>${h.type}<br><span style='font-size:12px;color:#555'>${h.time}</span>`,
+    });
+    marker.addListener("click", () => infowindow.open(map, marker));
+    markers[h.id] = marker;
+  });
+}
+
+function renderCrowds() {
+  const list = document.getElementById("crowdList");
+  list.innerHTML = "";
+  for (const [id, score] of Object.entries(crowdScores)) {
+    const badge = score >= 9 ? "very-high" : score >= 7 ? "high" : score >= 4 ? "medium" : "low";
+    const text = score >= 9 ? "Very High" : score >= 7 ? "High" : score >= 4 ? "Medium" : "Low";
+    const div = document.createElement("div");
+    div.className = "station";
+    div.innerHTML = `<div><strong>${id.toUpperCase()}</strong><div class='muted'>${score}/10 crowd</div></div>
+                     <div class='badge ${badge}'>${text}</div>`;
+    list.appendChild(div);
+  }
+}
+
+document.getElementById("btnAI").addEventListener("click", () => {
+  const banner = document.getElementById("aiBanner");
+  banner.textContent = "AI Tip: Avoid T. Nagar (Accident). Try Saidapet Metro instead!";
+  banner.style.display = "block";
+  setTimeout(() => banner.style.display = "none", 5000);
+});
+
+document.getElementById("btnReport").addEventListener("click", () =>
+  alert("Report functionality coming soon!")
+);
+</script>
+
+<!-- your existing scripts -->
+<script src="some-other-script.js"></script>
+
+<!-- Firebase CDN (COMPAT builds, required for firebase.auth(), firebase.firestore(), etc.) -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<!-- Your Firebase init file -->
+<script src="js/firebase-init.js"></script>
+
+<!-- Optional: shared auth logic across pages -->
+<script src="js/auth.js"></script>
+
+</body>
+</html>

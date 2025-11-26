@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Journey — GENESIS</title>
+
+<link rel="stylesheet" href="css/genesis-theme.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<style>
+  body {
+    background: #f7f7f7;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .nav {
+    background: #ffffffcc;
+    backdrop-filter: blur(10px);
+  }
+
+  #map {
+    width: 100%;
+    height: 260px;
+    border-radius: 16px;
+    margin: 12px 0;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  }
+
+  .journey-card {
+    background: white;
+    margin: 16px;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e5e5e5;
+    border-radius: 20px;
+    margin-top: 8px;
+  }
+  .progress {
+    height: 8px;
+    background: var(--primary);
+    width: 0%;
+    border-radius: 20px;
+  }
+
+  .ai-box {
+    background: white;
+    padding: 14px;
+    border-radius: 14px;
+    margin: 16px;
+    text-align: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    font-size: 13px;
+    color: #045b48;
+  }
+
+  button.small {
+    padding: 10px 12px;
+    margin-top: 10px;
+    width: 48%;
+  }
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <!-- NAV -->
+  <div class="nav">
+    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+    <div class="brand">GENESIS</div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="points" id="pointsDisplay">🌱 0 pts</div>
+      <div class="profile"></div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <button class="close-btn" onclick="toggleSidebar()">✕</button>
+    <a href="index.html">🏠 Home</a>
+    <a href="plan.html">🧭 Plan Journey</a>
+    <a href="compare.html">🗺️ Compare</a>
+    <a href="journey.html">▶️ Journey</a>
+    <a href="report.html">🚨 Report</a>
+    <a href="impact.html">📊 Impact</a>
+    <a href="rewards.html">🎁 Rewards</a>
+    <a href="leaderboard.html">🏆 Leaderboard</a>
+    <a href="admin.html">🔒 Admin</a>
+    <a href="about.html">ℹ️ About</a>
+  </div>
+
+  <h2 style="text-align:center;color:var(--primary);margin-top:15px;">Journey In Progress</h2>
+
+  <!-- MAP -->
+  <div id="map"></div>
+
+  <!-- JOURNEY CARD -->
+  <div class="journey-card">
+    <h3 style="margin-top:0;">Live Stats</h3>
+    <p><b>Mode:</b> <span id="modeLabel">Auto-detecting...</span></p>
+    <p><b>ETA:</b> <span id="eta">--</span></p>
+    <p><b>Distance Left:</b> <span id="remaining">--</span></p>
+
+    <div class="progress-bar"><div class="progress" id="progress"></div></div>
+
+    <p style="margin-top:14px;">
+      <b>CO₂ Saved:</b> <span id="co2Saved">0.00</span> kg<br>
+      <b>GreenPoints:</b> <span id="pointsEarned">0</span> pts
+    </p>
+
+    <button class="small" onclick="pauseJourney()">⏸ Pause</button>
+    <button class="small" onclick="endJourney()">⏹ End</button>
+  </div>
+
+  <!-- AI INSIGHTS -->
+  <div class="ai-box" id="aiTip">Analyzing live situation...</div>
+
+  <!-- GUARDIAN MODE -->
+  <div class="journey-card">
+    <h3>🛡️ Guardian Mode</h3>
+    <input type="tel" id="guardianNum" placeholder="Guardian phone (+91...)">
+    <button class="small" onclick="enableGuardian()">Enable</button>
+    <button class="small" onclick="sendSOS()">🚨 SOS</button>
+  </div>
+
+  <div class="footer">© 2025 GENESIS — Travel Smart 💚</div>
+
+</div>
+
+<!-- Leaflet -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- CSV Parser -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+<!-- Firebase Compat -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script src="js/firebase-init.js"></script>
+<script src="js/auth.js"></script>
+
+<script>
+/* ---------------------------------------------
+   SIDEBAR
+--------------------------------------------- */
+function toggleSidebar(){
+  document.getElementById("sidebar").classList.toggle("open");
+}
+
+/* ---------------------------------------------
+   FIREBASE POINTS LOAD
+--------------------------------------------- */
+firebase.auth().onAuthStateChanged(async user => {
+  if (!user) return;
+  const db = firebase.firestore();
+  const snap = await db.collection("users").doc(user.uid).get();
+  document.getElementById("pointsDisplay").innerText = "🌱 " + (snap.data().points || 0) + " pts";
+});
+
+/* -------------------------------------------------
+   MAP + ROUTING
+-------------------------------------------------- */
+let map = L.map("map");
+let routeLine;
+let userMarker;
+
+let from = localStorage.getItem("journey_from");
+let to   = localStorage.getItem("journey_to");
+let routeCoords = [];
+let totalDistance = 0;
+
+async function geocode(place){
+  let url = `https://nominatim.openstreetmap.org/search?format=json&q=${place}`;
+  let r = await fetch(url);
+  let j = await r.json();
+  return [parseFloat(j[0].lat), parseFloat(j[0].lon)];
+}
+
+async function getRoute(){
+  let start = await geocode(from);
+  let end   = await geocode(to);
+
+  map.setView(start, 14);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+
+  let url = `https://router.project-osrm.org/route/v1/driving/${start[1]},${start[0]};${end[1]},${end[0]}?geometries=geojson&overview=full`;
+  let res = await fetch(url);
+  let data = await res.json();
+
+  routeCoords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+  totalDistance = data.routes[0].distance / 1000;
+
+  routeLine = L.polyline(routeCoords, {color:"var(--primary)", weight:5}).addTo(map);
+  map.fitBounds(routeLine.getBounds());
+}
+
+getRoute();
+
+/* -------------------------------------------------
+   LIVE LOCATION + MODE DETECTION
+-------------------------------------------------- */
+let startTime = Date.now();
+let lastPos = null;
+let totalCo2 = 0;
+let points = 0;
+
+navigator.geolocation.watchPosition(pos => {
+  let lat = pos.coords.latitude;
+  let lon = pos.coords.longitude;
+
+  if (!userMarker){
+    userMarker = L.marker([lat, lon]).addTo(map);
+  } else {
+    userMarker.setLatLng([lat, lon]);
+  }
+
+  updateProgress(lat, lon);
+  detectMode(pos);
+
+}, err => console.log(err), { enableHighAccuracy:true });
+
+function detectMode(pos){
+  let speed = pos.coords.speed; // m/s
+  if (!speed || speed < 1.5) {
+    document.getElementById("modeLabel").innerText = "Walking";
+  } else if (speed < 6) {
+    document.getElementById("modeLabel").innerText = "Bike";
+  } else if (speed < 18) {
+    document.getElementById("modeLabel").innerText = "Car/Bus";
+  } else {
+    document.getElementById("modeLabel").innerText = "Metro/Train";
+  }
+}
+
+/* -------------------------------------------------
+   PROGRESS + ETA
+-------------------------------------------------- */
+function calcDistance(lat1, lon1, lat2, lon2){
+  let R=6371, dLat=(lat2-lat1)*Math.PI/180, dLon=(lon2-lon1)*Math.PI/180;
+  let a=Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function updateProgress(lat, lon){
+  let minDist = Infinity;
+  let closest;
+
+  routeCoords.forEach(p=>{
+    let d = calcDistance(lat, lon, p[0], p[1]);
+    if (d < minDist){
+      minDist = d;
+      closest = p;
+    }
+  });
+
+  let remainingDist = calcDistance(lat, lon, routeCoords[routeCoords.length-1][0], routeCoords[routeCoords.length-1][1]);
+
+  let completed = ((totalDistance - remainingDist) / totalDistance) * 100;
+  if (completed < 0) completed = 0;
+
+  document.getElementById("remaining").innerText = remainingDist.toFixed(2) + " km";
+  document.getElementById("progress").style.width = completed + "%";
+
+  let elapsedMin = (Date.now() - startTime) / 60000;
+  let speed = (totalDistance - remainingDist) / elapsedMin; // km/min
+  let etaMin = remainingDist / (speed || 0.4);
+
+  document.getElementById("eta").innerText = Math.ceil(etaMin) + " mins";
+
+  totalCo2 += 0.002;
+  points = Math.floor(totalCo2 * 10);
+
+  document.getElementById("co2Saved").innerText = totalCo2.toFixed(2);
+  document.getElementById("pointsEarned").innerText = points;
+
+  updateAISuggestions(lat, lon);
+}
+
+/* -------------------------------------------------
+   AI SUGGESTIONS USING SAFETY CSV
+-------------------------------------------------- */
+let safetyData = [];
+
+Papa.parse("data/chennai_route_safety.csv", {
+  download:true,
+  header:true,
+  complete: (res)=> safetyData = res.data
+});
+
+function updateAISuggestions(lat, lon){
+  let nearest = null;
+  let dist = Infinity;
+
+  safetyData.forEach(loc=>{
+    let d = calcDistance(lat, lon, parseFloat(loc.latitude), parseFloat(loc.longitude));
+    if (d < dist){
+      dist = d;
+      nearest = loc;
+    }
+  });
+
+  if (!nearest) return;
+
+  let S = (0.3*(nearest.accidents_last_year/40)
+        + 0.25*(nearest.crime_rate)
+        + 0.25*(nearest.hazard_density)
+        + 0.2*(1 - nearest.flood_risk_score)) * 100;
+
+  let msg = "Smooth journey ahead.";
+
+  if (S > 70) msg = "⚠️ High-risk zone nearby. Stay alert.";
+  else if (nearest.dog_attacks_reported > 10) msg = "🐕 Reports of stray dogs nearby.";
+  else if (nearest.flood_risk_score > 0.6) msg = "🌧️ Minor flooding possible.";
+
+  document.getElementById("aiTip").innerText = msg;
+}
+
+/* -------------------------------------------------
+   GUARDIAN MODE
+-------------------------------------------------- */
+let guardian = null;
+
+function enableGuardian(){
+  guardian = document.getElementById("guardianNum").value;
+  if (!guardian) return alert("Enter valid number");
+  alert("Guardian Enabled: " + guardian);
+}
+
+function sendSOS(){
+  if (!guardian) return alert("Enable Guardian Mode first");
+  alert("🚨 Dummy SOS sent to " + guardian);
+}
+
+/* -------------------------------------------------
+   END JOURNEY
+-------------------------------------------------- */
+async function endJourney(){
+  const user = firebase.auth().currentUser;
+  if (!user) return;
+
+  const db = firebase.firestore();
+  let doc = await db.collection("users").doc(user.uid).get();
+  let oldPoints = doc.data().points || 0;
+
+  await db.collection("users").doc(user.uid).update({
+    points: oldPoints + points
+  });
+
+  alert("Journey Completed! Earned " + points + " pts");
+  window.location.href = "impact.html";
+}
+
+function pauseJourney(){
+  alert("Paused (dummy)");
+}
+</script>
+
+</body>
+</html>

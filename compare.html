@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Compare Routes — GENESIS</title>
+
+  <!-- Theme -->
+  <link rel="stylesheet" href="css/genesis-theme.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      background: linear-gradient(120deg, var(--bg1), var(--bg2));
+      color: var(--text);
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .app { max-width: 480px; margin: auto; padding-bottom: 60px; }
+
+    .menu-btn {
+      border: 0; background: none; font-size: 20px; cursor: pointer;
+    }
+
+    .brand {
+      font-weight: 700; font-size: 20px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .points {
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      color: #00251f; padding: 6px 10px; border-radius: 20px; font-weight: 600;
+    }
+
+    .profile {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: url('https://cdn-icons-png.flaticon.com/512/3135/3135715.png') center/cover;
+      border: 2px solid var(--accent);
+    }
+
+    .sidebar {
+      position: fixed; top: 0; left: -260px;
+      width: 240px; height: 100vh;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+      transition: .4s; z-index: 50; padding-top: 80px;
+    }
+
+    .sidebar.open { left: 0; }
+
+    .sidebar a {
+      display: block; padding: 14px 20px;
+      color: var(--text); font-weight: 600;
+      text-decoration: none;
+    }
+
+    .sidebar a:hover { background: rgba(0, 191, 166, 0.15); }
+
+    .close-btn {
+      position: absolute; top: 20px; right: 20px;
+      border: none; background: none; font-size: 18px; cursor: pointer;
+    }
+
+    h2 { text-align:center; margin-top:20px; color:var(--primary); }
+
+    .journey-summary {
+      background: var(--card);
+      margin: 16px;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    .journey-summary h3 {
+      margin: 0 0 8px 0;
+      font-size: 16px;
+      color: var(--text);
+    }
+
+    .journey-summary p {
+      margin: 4px 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .route-card {
+      background: var(--card); padding:20px; margin:20px 16px;
+      border-radius:16px; box-shadow: var(--shadow); position:relative;
+      transition:0.25s;
+      opacity: 0;
+      animation: slideIn 0.4s ease forwards;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .route-card:nth-child(2) { animation-delay: 0.1s; }
+    .route-card:nth-child(3) { animation-delay: 0.2s; }
+
+    .route-card:hover { transform: translateY(-4px); }
+
+    .badge {
+      position:absolute; top:14px; right:14px;
+      background:#ff6b6b; color:white; padding:6px 10px;
+      font-size:12px; border-radius:8px; font-weight:700;
+    }
+
+    .recommended-badge {
+      position:absolute; top:14px; right:14px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      color:#00251f; padding:6px 10px;
+      font-size:12px; border-radius:8px; font-weight:700;
+    }
+
+    .route-header {
+      display:flex; justify-content:space-between; align-items: center;
+      margin-bottom:8px;
+    }
+
+    .route-header h4 {
+      margin: 0;
+      color: var(--primary);
+    }
+
+    .route-via {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .route-info {
+      color:var(--muted); font-size:13px;
+      display:flex; justify-content:space-between;
+      margin: 8px 0;
+    }
+
+    .route-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .metric {
+      background: rgba(0,191,166,0.08);
+      padding: 8px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .metric-label {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .metric-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .highlight-tag {
+      background: rgba(0,191,166,0.15);
+      padding:6px 10px;
+      border-radius:8px;
+      font-size:12px;
+      margin:4px 4px 4px 0;
+      font-weight:600;
+      display:inline-block;
+    }
+
+    .start-btn {
+      width:100%; padding:12px; border:0; margin-top:12px;
+      border-radius:10px; background:linear-gradient(90deg,var(--primary),var(--accent));
+      font-weight:600; cursor:pointer; color: #00251f;
+      transition: 0.3s;
+    }
+    .start-btn:hover { opacity:0.9; transform: scale(1.02); }
+
+    .tip {
+      background:linear-gradient(120deg,#d8ffe9,#f0fff6);
+      padding:12px 16px; margin:20px 16px; border-radius:12px;
+      text-align:center; color:#045b48; box-shadow:var(--shadow);
+      font-size: 13px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+    }
+
+    .spinner {
+      border: 3px solid rgba(0,191,166,0.1);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error-msg {
+      background: linear-gradient(120deg, #ffe9e9, #fff5f5);
+      color: #c41e3a;
+      padding: 16px;
+      border-radius: 12px;
+      margin: 20px 16px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      padding: 30px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+
+    <!-- Navbar -->
+    <div class="nav">
+      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+      <div class="brand">GENESIS</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="points" id="pointsDisplay">🌱 0 pts</div>
+        <div class="profile"></div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <button class="close-btn" onclick="toggleSidebar()">✕</button>
+      <a href="index.html">🏠 Home</a>
+      <a href="plan.html">🧭 Plan Journey</a>
+      <a href="report.html">🚨 Report</a>
+      <a href="impact.html">📊 Impact</a>
+      <a href="rewards.html">🎁 Rewards</a>
+      <a href="leaderboard.html">🏆 Leaderboard</a>
+      <a href="admin.html">🔒 Admin</a>
+      <a href="about.html">ℹ️ About</a>
+    </div>
+
+    <h2>Compare Routes</h2>
+
+    <!-- Journey Summary -->
+    <div class="journey-summary" id="journeySummary" style="display:none;">
+      <h3 id="journeyTitle">Loading...</h3>
+      <p id="journeySubtitle"></p>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading" id="loadingState">
+      <div class="spinner"></div>
+      <p>Analyzing routes and safety data...</p>
+    </div>
+
+    <!-- Error State -->
+    <div class="error-msg" id="errorState" style="display:none;"></div>
+
+    <!-- Routes Container -->
+    <div id="routesContainer"></div>
+
+    <div class="tip" id="aiTip" style="display:none;">
+      💡 Fetching best route recommendations…
+    </div>
+
+    <div class="footer">
+      © 2025 GENESIS — Smarter, Greener, Safer
+    </div>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("open");
+    }
+
+    // Points display
+    let fallbackPoints = parseInt(localStorage.getItem("genesis_points") || 420);
+    document.getElementById("pointsDisplay").innerText = "🌱 " + fallbackPoints + " pts";
+
+    // Get journey data from localStorage
+    const fromName = localStorage.getItem("journey_from");
+    const toName = localStorage.getItem("journey_to");
+    const fromLat = parseFloat(localStorage.getItem("journey_from_lat"));
+    const fromLng = parseFloat(localStorage.getItem("journey_from_lng"));
+    const toLat = parseFloat(localStorage.getItem("journey_to_lat"));
+    const toLng = parseFloat(localStorage.getItem("journey_to_lng"));
+    const priority = localStorage.getItem("journey_priority") || "balanced";
+
+    // Chennai safety data (from your dataset)
+    const safetyData = {
+      "Anna Nagar": {a:15,d:11,c:0.58,l:0.63,f:0.57,p:0.55,risk:2.8},
+      "Adyar": {a:8,d:2,c:0.28,l:0.78,f:0.03,p:0.74,risk:1.5},
+      "Egmore": {a:24,d:14,c:0.91,l:0.38,f:0.71,p:0.20,risk:4.2},
+      "Guindy": {a:35,d:14,c:0.79,l:0.17,f:0.86,p:0.05,risk:4.8},
+      "Kodambakkam":{a:35,d:16,c:0.95,l:0.12,f:0.90,p:0.27,risk:5.1},
+      "Mylapore":{a:21,d:13,c:0.97,l:0.35,f:0.83,p:0.15,risk:4.5},
+      "T Nagar":{a:15,d:3,c:0.50,l:0.59,f:0.50,p:0.47,risk:2.6},
+      "Velachery":{a:7,d:2,c:0.22,l:0.80,f:0.08,p:0.83,risk:1.3},
+      "Ambattur":{a:6,d:4,c:0.01,l:0.84,f:0.05,p:0.65,risk:1.2}
+    };
+
+    function calculateSafetyScore(area) {
+      if (!safetyData[area]) return 3.5;
+      const x = safetyData[area];
+      // Safety score from 1-5 (higher is safer)
+      const score = (0.3*(1-x.a/40) + 0.25*(1-x.c) + 0.25*x.l + 0.2*(1-x.f));
+      return (score*5).toFixed(1);
+    }
+
+    function getAreaFromCoords(lat, lng) {
+      // Simple area detection based on coordinates (Chennai)
+      const areas = Object.keys(safetyData);
+      // For MVP, return random weighted by safety
+      return areas[Math.floor(Math.random() * areas.length)];
+    }
+
+    function calculateEcoScore(distance, routeType) {
+      // Eco score based on distance and route characteristics
+      // Baseline: 2.5 kg CO2 per 10km for car
+      const baseCO2 = (distance / 10) * 2.5;
+      
+      // Safer routes often use arterial roads (less congestion) = better eco
+      const multiplier = routeType === 'safer' ? 0.85 : 1.0;
+      
+      return (baseCO2 * multiplier).toFixed(1);
+    }
+
+    // Validate journey data
+    if (!fromName || !toName || !fromLat || !fromLng || !toLat || !toLng) {
+      document.getElementById("loadingState").style.display = "none";
+      document.getElementById("errorState").style.display = "block";
+      document.getElementById("errorState").innerHTML = 
+        "⚠️ Missing journey data. Please <a href='plan.html' style='color:#00bfa6;font-weight:600;'>plan your journey</a> first.";
+    } else {
+      // Show journey summary
+      document.getElementById("journeySummary").style.display = "block";
+      document.getElementById("journeyTitle").innerText = `${fromName} → ${toName}`;
+      document.getElementById("journeySubtitle").innerText = `Priority: ${priority.charAt(0).toUpperCase() + priority.slice(1)}`;
+      
+      // Load routes
+      loadRoutes();
+    }
+
+    async function loadRoutes() {
+      try {
+        // For MVP: Calculate simulated routes based on coordinates
+        // In production, you would use ORS API or Google Directions API
+        
+        const distance = calculateDistance(fromLat, fromLng, toLat, toLng);
+        
+        // Fastest route (direct, major roads)
+        const fastestRoute = {
+          type: 'fastest',
+          distance: distance,
+          time: Math.round(distance * 2.5), // ~2.5 min per km in Chennai traffic
+          via: getAreaFromCoords((fromLat + toLat) / 2, (fromLng + toLng) / 2),
+          highways: true
+        };
+
+        // Safer route (slightly longer, avoids high-risk zones)
+        const saferRoute = {
+          type: 'safer',
+          distance: distance * 1.15, // 15% longer
+          time: Math.round(distance * 1.15 * 2.8), // Slightly slower
+          via: Object.keys(safetyData).filter(a => safetyData[a].risk < 3)[0] || "Adyar",
+          highways: false
+        };
+
+        // Calculate safety and eco scores
+        fastestRoute.safetyScore = calculateSafetyScore(fastestRoute.via);
+        fastestRoute.ecoScore = calculateEcoScore(fastestRoute.distance, 'fastest');
+        
+        saferRoute.safetyScore = calculateSafetyScore(saferRoute.via);
+        saferRoute.ecoScore = calculateEcoScore(saferRoute.distance, 'safer');
+
+        // Determine recommended route based on priority
+        let recommendedType = 'fastest';
+        if (priority === 'safest') recommendedType = 'safer';
+        else if (priority === 'greenest') recommendedType = saferRoute.ecoScore < fastestRoute.ecoScore ? 'safer' : 'fastest';
+        else if (priority === 'balanced') recommendedType = parseFloat(saferRoute.safetyScore) > 3.5 ? 'safer' : 'fastest';
+
+        // Hide loading
+        document.getElementById("loadingState").style.display = "none";
+        
+        // Render routes
+        renderRoute(fastestRoute, recommendedType === 'fastest');
+        renderRoute(saferRoute, recommendedType === 'safer');
+
+        // Show AI tip
+        document.getElementById("aiTip").style.display = "block";
+        const tips = [
+          `💡 AI Insight: ${saferRoute.via} has ${Math.abs(parseFloat(fastestRoute.safetyScore) - parseFloat(saferRoute.safetyScore)).toFixed(1)}x better safety rating.`,
+          `🌱 Choosing safer route saves ~${Math.abs(parseFloat(fastestRoute.ecoScore) - parseFloat(saferRoute.ecoScore)).toFixed(1)} kg CO₂.`,
+          `⚡ Fastest route saves ${Math.round(saferRoute.time - fastestRoute.time)} minutes but passes through busier areas.`,
+          `💚 Based on your ${priority} priority, we recommend the ${recommendedType} route.`
+        ];
+        document.getElementById("aiTip").innerHTML = tips[Math.floor(Math.random() * tips.length)];
+
+      } catch (error) {
+        console.error("Route calculation error:", error);
+        document.getElementById("loadingState").style.display = "none";
+        document.getElementById("errorState").style.display = "block";
+        document.getElementById("errorState").innerHTML = 
+          "⚠️ Unable to calculate routes. Please try again.";
+      }
+    }
+
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      // Haversine formula
+      const R = 6371; // Earth radius in km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return (R * c).toFixed(1);
+    }
+
+    function renderRoute(route, isRecommended) {
+      const container = document.getElementById("routesContainer");
+      
+      const card = document.createElement("div");
+      card.className = "route-card";
+      
+      const title = route.type === 'fastest' ? '🚀 Fastest Route' : '🛡️ Safer Route';
+      const safetyColor = parseFloat(route.safetyScore) >= 4 ? '#00bfa6' : parseFloat(route.safetyScore) >= 3 ? '#f59e0b' : '#ff6b6b';
+      const showWarning = parseFloat(route.safetyScore) < 3;
+      
+      let tags = '';
+      if (route.highways) tags += '<span class="highlight-tag">🛣️ Major Roads</span>';
+      if (parseFloat(route.safetyScore) >= 4) tags += '<span class="highlight-tag">✅ High Safety</span>';
+      if (parseFloat(route.ecoScore) < 2) tags += '<span class="highlight-tag">🌱 Eco Friendly</span>';
+      if (!route.highways) tags += '<span class="highlight-tag">🏘️ Residential Areas</span>';
+      
+      card.innerHTML = `
+        ${isRecommended ? '<div class="recommended-badge">⭐ AI Recommended</div>' : ''}
+        ${showWarning ? '<div class="badge">⚠️ Caution</div>' : ''}
+        
+        <div class="route-header">
+          <h4>${title}</h4>
+          <div class="route-via">via ${route.via}</div>
+        </div>
+
+        <div class="route-info">
+          <span>⏱️ ${route.time} min</span>
+          <span>📍 ${route.distance} km</span>
+        </div>
+
+        <div class="route-metrics">
+          <div class="metric">
+            <div class="metric-label">Safety Score</div>
+            <div class="metric-value" style="color:${safetyColor}">${route.safetyScore}/5</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">CO₂ Emission</div>
+            <div class="metric-value">${route.ecoScore} kg</div>
+          </div>
+        </div>
+
+        <div style="margin-top:8px;">
+          ${tags}
+        </div>
+
+        <button class="start-btn" onclick="startJourney('${route.type}', ${JSON.stringify(route).replace(/"/g, '&quot;')})">
+          Start Journey
+        </button>
+      `;
+      
+      container.appendChild(card);
+    }
+
+    function startJourney(type, routeData) {
+      // Save selected route
+      localStorage.setItem("active_route_type", type);
+      localStorage.setItem("active_route_data", JSON.stringify(routeData));
+      localStorage.setItem("journey_start_time", Date.now());
+      
+      // Redirect to journey tracking page
+      window.location.href = "journey.html";
+    }
+  </script>
+
+</body>
+</html>

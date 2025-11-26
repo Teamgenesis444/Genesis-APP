@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login — GENESIS</title>
+
+  <!-- Theme -->
+  <link rel="stylesheet" href="css/genesis-theme.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    .auth-box {
+      max-width: 380px;
+      margin: 50px auto;
+      padding: 30px;
+      background: var(--card);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      text-align: center;
+      animation: fadeIn 0.6s ease;
+    }
+    input { margin: 10px 0; }
+    .google-btn {
+      background: #fff;
+      color: black;
+      border: 1px solid #ccc;
+      width: 100%;
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .error { color: red; font-size: 13px; margin-top: 10px; min-height: 18px; }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+
+    <h2 class="text-center mt-3">Welcome Back to GENESIS</h2>
+
+    <div class="auth-box">
+      <input type="email" id="email" placeholder="Email" />
+      <input type="password" id="password" placeholder="Password" />
+
+      <button onclick="login()">Login</button>
+
+      <button class="google-btn" onclick="googleLogin()">Sign in with Google</button>
+
+      <p style="margin-top:14px;">Don't have an account?
+        <a href="signup.html">Create one</a>
+      </p>
+
+      <div class="error" id="errorBox"></div>
+    </div>
+
+  </div>
+
+  <!-- Firebase (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+  <!-- Firebase Init + Auth Guard -->
+  <script src="js/firebase-init.js"></script>
+  <script src="js/auth.js"></script>
+
+  <script>
+    async function login() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const auth = firebase.auth();
+
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+        window.location.href = "index.html";
+
+      } catch (err) {
+        document.getElementById("errorBox").innerText = err.message;
+      }
+    }
+
+    async function googleLogin() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      const auth = firebase.auth();
+      const db = firebase.firestore();
+
+      try {
+        const result = await auth.signInWithPopup(provider);
+        const user = result.user;
+
+        const ref = db.collection("users").doc(user.uid);
+        const snap = await ref.get();
+
+        if (!snap.exists) {
+          await ref.set({
+            name: user.displayName,
+            email: user.email,
+            points: 0,
+            joined: new Date()
+          });
+        }
+
+        window.location.href = "index.html";
+
+      } catch (err) {
+        document.getElementById("errorBox").innerText = err.message;
+      }
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Report Issue — GENESIS</title>
+
+  <link rel="stylesheet" href="css/genesis-theme.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    h2 { text-align:center; color:var(--primary); margin-top:20px; }
+
+    .report-form {
+      margin:20px;
+      padding:20px;
+      background:var(--card);
+      border-radius:16px;
+      box-shadow:var(--shadow);
+    }
+
+    label { font-weight:600; font-size:14px; color:var(--text); }
+
+    select, input[type="file"], textarea {
+      width:100%; padding:10px 12px; margin:8px 0 14px;
+      border:1px solid rgba(0,0,0,0.1); border-radius:10px;
+    }
+
+    textarea { resize:none; height:80px; }
+
+    .location { font-size:13px; color:var(--muted); margin-top:4px; }
+
+    .success {
+      display:none; text-align:center;
+      background:linear-gradient(120deg,#d8ffe9,#f0fff6);
+      color:#045b48; padding:14px;
+      border-radius:12px; margin:20px; box-shadow:var(--shadow);
+    }
+
+    .admin-panel {
+      margin:20px; padding:16px;
+      background:var(--card); border-radius:12px; box-shadow:var(--shadow);
+    }
+
+    .report-item {
+      padding:10px; border-bottom:1px solid rgba(0,0,0,0.1);
+      font-size:14px;
+    }
+
+    .report-item button {
+      padding:6px 10px; background:linear-gradient(90deg,var(--primary),var(--accent));
+      border:none; border-radius:8px; font-weight:600; margin-top:8px; cursor:pointer;
+    }
+
+    .footer { text-align:center; font-size:12px; color:var(--muted); padding:30px; }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+
+    <!-- Navbar -->
+    <div class="nav">
+      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+      <div class="brand">GENESIS</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="points" id="pointsDisplay">🌱 0 pts</div>
+        <div class="profile"></div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <button class="close-btn" onclick="toggleSidebar()">✕</button>
+      <a href="index.html">🏠 Home</a>
+      <a href="plan.html">🧭 Plan Journey</a>
+      <a href="compare.html">🗺️ Compare Routes</a>
+      <a href="journey.html">▶️ Journey</a>
+      <a href="report.html">🚨 Report</a>
+      <a href="impact.html">📊 Impact</a>
+      <a href="rewards.html">🎁 Rewards</a>
+      <a href="leaderboard.html">🏆 Leaderboard</a>
+      <a href="admin.html">🔒 Admin</a>
+      <a href="about.html">ℹ️ About</a>
+    </div>
+
+    <h2>Report a Hazard</h2>
+
+    <!-- FORM -->
+    <div class="report-form">
+      <label>Type of Hazard:</label>
+      <select id="hazardType">
+        <option value="">Select</option>
+        <option>🚧 Road Damage</option>
+        <option>🚦 Broken Signal</option>
+        <option>🚨 Accident</option>
+        <option>🌧️ Flooding</option>
+        <option>😡 Harassment</option>
+        <option>🔥 Fire/Smoke</option>
+      </select>
+
+      <label>Description (optional):</label>
+      <textarea id="desc" placeholder="Add any details..."></textarea>
+
+      <label>Upload Photo (optional):</label>
+      <input type="file" id="imageInput" accept="image/*">
+
+      <label>Location:</label>
+      <div id="locationText" class="location">Detecting location...</div>
+
+      <button onclick="submitReport()">Submit Report</button>
+    </div>
+
+    <div class="success" id="successBox">✅ Report submitted successfully! Pending admin review.</div>
+
+    <!-- ADMIN PANEL -->
+    <div class="admin-panel" id="adminPanel" style="display:none;">
+      <h4>🧑‍💻 Admin Review</h4>
+      <div id="reportList"></div>
+    </div>
+
+    <div class="footer">© 2025 GENESIS — Safer Chennai, Together 🌿</div>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // Detect location
+    function detectLocation() {
+      const loc = document.getElementById('locationText');
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(pos => {
+          loc.innerText = `Lat: ${pos.coords.latitude.toFixed(3)}, Lng: ${pos.coords.longitude.toFixed(3)}`;
+        }, () => {
+          loc.innerText = "Unable to fetch location.";
+        });
+      }
+    }
+    detectLocation();
+
+    // Firebase
+    const db = firebase.firestore();
+    let currentUser = null;
+
+    firebase.auth().onAuthStateChanged(user => {
+      currentUser = user;
+      if (user) loadAdminPanel();
+    });
+
+    // Submit report → Firestore
+    async function submitReport() {
+      const type = document.getElementById('hazardType').value;
+      const desc = document.getElementById('desc').value;
+      const location = document.getElementById('locationText').innerText;
+
+      if (!currentUser) { alert("You must be logged in."); return; }
+      if (!type) { alert("Select a hazard type."); return; }
+
+      await db.collection("reports").add({
+        userId: currentUser.uid,
+        type,
+        desc,
+        location,
+        status: "pending",
+        createdAt: new Date()
+      });
+
+      document.getElementById('successBox').style.display = 'block';
+      setTimeout(() => document.getElementById('successBox').style.display = 'none', 3000);
+
+      document.getElementById('hazardType').value = "";
+      document.getElementById('desc').value = "";
+      document.getElementById('imageInput').value = "";
+    }
+
+    // Load reports for admin
+    async function loadAdminPanel() {
+      const panel = document.getElementById('adminPanel');
+      const list = document.getElementById('reportList');
+      panel.style.display = 'block';
+      list.innerHTML = "";
+
+      const snap = await db.collection("reports").orderBy("createdAt", "desc").get();
+
+      snap.forEach(doc => {
+        const rep = doc.data();
+        const id = doc.id;
+
+        const div = document.createElement("div");
+        div.className = "report-item";
+        div.innerHTML = `
+          <b>${rep.type}</b> - ${rep.status}<br>
+          <small>${rep.location}</small><br>
+          <button onclick="verifyReport('${id}')">Mark Valid ✅</button>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    // Verify report → award points
+    async function verifyReport(id) {
+      const ref = db.collection("reports").doc(id);
+      await ref.update({ status: "verified" });
+
+      const rep = (await ref.get()).data();
+      const userRef = db.collection("users").doc(rep.userId);
+
+      await userRef.update({
+        points: firebase.firestore.FieldValue.increment(5)
+      });
+
+      alert("Report verified! +5 GreenPoints added.");
+      loadAdminPanel();
+    }
+  </script>
+
+  <!-- Firebase Compat CDN -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+  <!-- Init + Auth -->
+  <script src="js/firebase-init.js"></script>
+  <script src="js/auth.js"></script>
+
+</body>
+</html>
