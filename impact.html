@@ -148,13 +148,13 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-firebase.auth().onAuthStateChanged(async user => {
+/*firebase.auth().onAuthStateChanged(async user => {
   if (!user) return;
 
   const db = firebase.firestore();
   const snapshot = await db.collection("journeys")
     .where("userId", "==", user.uid)
-    .get();
+    .get();*/
 
   let totalCO2 = 0;
   let totalPoints = 0;
@@ -222,3 +222,4 @@ firebase.auth().onAuthStateChanged(async user => {
 
 </body>
 </html>
+
