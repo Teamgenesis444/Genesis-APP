@@ -6,7 +6,7 @@
 <title>Compare Routes — GENESIS</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/genesis-theme.css">
+<link rel="stylesheet" href="../css/genesis-theme.css">
 
 <style>
 body {
@@ -103,6 +103,7 @@ h2 { text-align:center; margin:20px 0; color:var(--primary); }
 </div>
 
 <script>
+// Load points
 document.getElementById("pointsDisplay").innerText =
   "🌱 " + (localStorage.getItem("genesis_points") || 420) + " pts";
 
@@ -116,7 +117,7 @@ const priority = localStorage.getItem("journey_priority") || "balanced";
 
 // Load CSV
 async function loadSafetyCSV(){
-  const res = await fetch("safetydata.csv");
+  const res = await fetch("../safetydata.csv");
   const text = await res.text();
 
   const rows = text.trim().split("\n");
@@ -134,25 +135,26 @@ async function loadSafetyCSV(){
   return data;
 }
 
-// Formula
+// Safety Score 0–5 ⭐
 function calcSafety(a){
   const T = parseFloat(a.street_lighting_score);
   const C = parseFloat(a.police_presence_score);
   const R = 1 - parseFloat(a.hazard_density);
   const I = parseFloat(a.crime_rate);
 
-  return Math.round((0.3*T + 0.25*C + 0.25*R + 0.2*(1-I))*100);
+  const score = (0.3*T + 0.25*C + 0.25*R + 0.2*(1-I)) * 5;
+  return score.toFixed(1); // "4.2"
 }
 
 // Distance
-function dist(lat1,lon1,lat2,lon2){
+function dist(a,b,c,d){
   const R=6371;
-  const dLat=(lat2-lat1)*Math.PI/180;
-  const dLon=(lon2-lon1)*Math.PI/180;
-  const a=Math.sin(dLat/2)**2 +
-    Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180) *
+  const dLat=(c-a)*Math.PI/180;
+  const dLon=(d-b)*Math.PI/180;
+  const x=Math.sin(dLat/2)**2 +
+    Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180) *
     Math.sin(dLon/2)**2;
-  return +(R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))).toFixed(1);
+  return +(R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))).toFixed(1);
 }
 
 // Find REAL nearest area
@@ -179,15 +181,14 @@ function renderRoute(r, recommended){
   let box=document.createElement("div");
   box.className="route-card";
 
-  let dogTag="";
-  if(r.dogRisk === "high"){
-    dogTag=`<span class="tag dog-risk">🐕 Dog Risk Zone</span>`;
-  } else {
-    dogTag=`<span class="tag">🐾 Low Dog Risk</span>`;
-  }
+  let dogTag =
+    r.dogRisk === "high"
+    ? `<span class="tag dog-risk">🐕 Dog Risk Zone</span>`
+    : `<span class="tag">🐾 Low Dog Risk</span>`;
 
-  let rec = recommended ?
-    `<div class="recommended-badge">⭐ Recommended</div>` : "";
+  let rec = recommended
+    ? `<div class="recommended-badge">⭐ Recommended</div>`
+    : "";
 
   box.innerHTML = `
     ${rec}
@@ -208,7 +209,7 @@ function renderRoute(r, recommended){
 
     <div class="metric">
       <div class="metric-label">Safety Score</div>
-      <div class="metric-value">${r.safety}%</div>
+      <div class="metric-value">⭐ ${r.safety}</div>
     </div>
 
     <div class="metric">
@@ -263,7 +264,6 @@ function startJourney(type){
     dogRisk: safeData.dog_attacks_reported > 10 ? "high":"low"
   };
 
-  // Priorities
   let rec="fastest";
   if(priority==="safest") rec="safer";
   else if(priority==="greenest") rec = safer.eco < fastest.eco ? "safer" : "fastest";
@@ -274,8 +274,8 @@ function startJourney(type){
 
   document.getElementById("aiTip").innerText =
     rec==="safer"
-    ? "💡 Safer route chosen due to better safety score."
-    : "⚡ Fastest route recommended based on ETA.";
+    ? "💡 Safer route chosen due to high safety rating."
+    : "⚡ Fastest route recommended for quickest travel.";
 })();
 </script>
 
