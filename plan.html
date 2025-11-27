@@ -64,11 +64,31 @@
 </head>
 
 <body>
+    <!-- Navbar -->
+    <div class="nav">
+      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+      <div class="brand">GENESIS</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="points" id="pointsDisplay">🌱 0 pts</div>
+        <div class="profile"></div>
+      </div>
+    </div>
 
-<div class="nav">
-  <div class="brand">GENESIS</div>
-  <div class="points" id="pointsDisplay">🌱 0 pts</div>
-</div>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <button class="close-btn" onclick="toggleSidebar()">✕</button>
+      <a href="index.html">🏠 Home</a>
+      <a href="plan.html">🧭 Plan Journey</a>
+    
+      <a href="journey.html">▶️ Journey</a>
+      <a href="report.html">🚨 Report</a>
+      <a href="impact.html">📊 Impact</a>
+      <a href="rewards.html">🎁 Rewards</a>
+      <a href="leaderboard.html">🏆 Leaderboard</a>
+      <a href="admin.html">🔒 Admin</a>
+      <a href="about.html">ℹ️ About</a>
+    </div>
+
 
 <h2 style="text-align:center; color:var(--primary);">Plan Your Journey</h2>
 <div class="error" id="errorMsg"></div>
@@ -229,3 +249,4 @@ function showError(msg){
 
 </body>
 </html>
+
