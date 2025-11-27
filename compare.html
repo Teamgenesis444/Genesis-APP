@@ -1,99 +1,111 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Compare Routes — GENESIS</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compare Routes — GENESIS</title>
 
-  <link rel="stylesheet" href="css/genesis-theme.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/genesis-theme.css">
 
-  <style>
-    body {
-      margin: 0;
-      background: linear-gradient(120deg, var(--bg1), var(--bg2));
-      color: var(--text);
-      font-family: 'Poppins', sans-serif;
-    }
+<style>
+body {
+  margin:0; font-family:Poppins,sans-serif;
+  background:linear-gradient(120deg,var(--bg1),var(--bg2));
+  color:var(--text);
+}
 
-    .app { max-width: 480px; margin: auto; padding-bottom: 60px; }
+.app { max-width:480px; margin:auto; padding-bottom:60px; }
 
-    .nav {
-      display: flex; justify-content: space-between;
-      padding: 14px 20px; font-weight: 600;
-    }
-    .brand {
-      font-size: 22px;
-      background: linear-gradient(90deg, var(--primary), var(--accent));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
+.nav {
+  display:flex; justify-content:space-between;
+  padding:14px 20px; font-weight:600;
+}
+.brand {
+  font-size:22px;
+  background: linear-gradient(90deg,var(--primary),var(--accent));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.points {
+  background:white; padding:8px 16px;
+  border-radius:14px; font-weight:600;
+}
 
-    .points {
-      background: linear-gradient(90deg, var(--primary), var(--accent));
-      padding: 6px 10px; border-radius: 20px; font-weight: 600; color: #00251f;
-    }
+h2 { text-align:center; margin:20px 0; color:var(--primary); }
 
-    h2 { text-align: center; margin-top: 20px; color: var(--primary); }
+.route-card {
+  background:white;
+  margin:16px; padding:20px;
+  border-radius:14px; box-shadow:var(--shadow);
+  position:relative;
+  animation: fadeIn 0.4s ease;
+}
 
-    .journey-summary, .route-card {
-      background: white;
-      margin: 16px; padding: 16px;
-      border-radius: 12px;
-      box-shadow: var(--shadow);
-    }
-    .route-card:hover { transform: scale(1.02); transition: 0.2s; }
+@keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
 
-    .metric { background:#f4fef9; padding:10px; border-radius:8px; margin-top:10px; }
-    .metric-label { font-size:12px; color:#777; }
-    .metric-value { font-size:18px; font-weight:700; }
+.metric {
+  background:#f2fff7;
+  padding:10px; border-radius:10px;
+  margin-top:10px;
+}
+.metric-label { font-size:12px; color:#777; }
+.metric-value { font-size:18px; font-weight:700; }
 
-    .start-btn {
-      width:100%; padding:12px;
-      background:linear-gradient(90deg,var(--primary),var(--accent));
-      border:none; color:#00251f; border-radius:10px; font-weight:700; cursor:pointer;
-    }
+.tag {
+  display:inline-block;
+  padding:6px 10px; border-radius:8px;
+  background:#eafff3; margin-right:6px;
+  font-size:12px; font-weight:600;
+}
 
-    .recommended-badge {
-      background: linear-gradient(90deg, var(--primary), var(--accent));
-      color:#00251f; padding:6px 10px; border-radius:8px;
-      font-size:12px; position:absolute; top:12px; right:12px; font-weight:700;
-    }
+.dog-risk { background:#ffe4e4; color:#b60000; }
 
-    .tip {
-      background: #e8fff2; margin:16px; padding:16px;
-      border-radius:12px; text-align:center; color:#045b48;
-      box-shadow:var(--shadow);
-    }
-  </style>
+.start-btn {
+  width:100%; padding:12px; border:none;
+  background:linear-gradient(90deg,var(--primary),var(--accent));
+  color:#00251f; font-weight:700;
+  border-radius:10px; cursor:pointer;
+  margin-top:14px;
+}
+.recommended-badge{
+  background:linear-gradient(90deg,var(--primary),var(--accent));
+  color:#00251f;
+  padding:6px 10px; border-radius:8px;
+  position:absolute; top:12px; right:12px;
+  font-size:12px; font-weight:700;
+}
+
+.tip {
+  background:#eafff3;
+  text-align:center; padding:14px;
+  margin:20px; border-radius:12px;
+  box-shadow:var(--shadow);
+  font-size:14px; color:#045b48;
+}
+</style>
 </head>
 
 <body>
 <div class="app">
 
-  <div class="nav">
-    <div class="brand">GENESIS</div>
-    <div class="points" id="pointsDisplay"></div>
-  </div>
+<div class="nav">
+  <div class="brand">GENESIS</div>
+  <div class="points" id="pointsDisplay"></div>
+</div>
 
-  <h2>Compare Routes</h2>
+<h2>Compare Routes</h2>
 
-  <div class="journey-summary" id="journeySummary">
-    <h3 id="routeTitle"></h3>
-    <p id="routeSubtitle"></p>
-  </div>
+<div id="routesContainer"></div>
 
-  <div id="routesContainer"></div>
-
-  <div class="tip" id="aiTip">AI analyzing your safest and greenest options…</div>
+<div class="tip" id="aiTip">AI analyzing safest and greenest paths…</div>
 
 </div>
+
 <script>
-// Load points
 document.getElementById("pointsDisplay").innerText =
   "🌱 " + (localStorage.getItem("genesis_points") || 420) + " pts";
 
-// Get journey data from plan.html
 const fromName = localStorage.getItem("journey_from");
 const toName = localStorage.getItem("journey_to");
 const fromLat = parseFloat(localStorage.getItem("journey_from_lat"));
@@ -102,99 +114,109 @@ const toLat = parseFloat(localStorage.getItem("journey_to_lat"));
 const toLng = parseFloat(localStorage.getItem("journey_to_lng"));
 const priority = localStorage.getItem("journey_priority") || "balanced";
 
-// Show summary
-document.getElementById("routeTitle").innerText = `${fromName} → ${toName}`;
-document.getElementById("routeSubtitle").innerText =
-  "Priority: " + priority;
-
-// Load CSV → convert → calculate safety
-async function loadSafetyData() {
+// Load CSV
+async function loadSafetyCSV(){
   const res = await fetch("safetydata.csv");
-  const csv = await res.text();
+  const text = await res.text();
 
-  const rows = csv.trim().split("\n");
+  const rows = text.trim().split("\n");
   const headers = rows[0].split(",");
 
   let data = {};
 
-  // Convert CSV → JSON object
-  for (let i = 1; i < rows.length; i++) {
+  for(let i=1;i<rows.length;i++){
     const cols = rows[i].split(",");
-    const obj = {};
-    headers.forEach((h, idx) => (obj[h] = cols[idx]));
+    let obj={};
+    headers.forEach((h,idx)=>obj[h]=cols[idx]);
     data[obj.location_name] = obj;
   }
 
   return data;
 }
 
-// Formula: S = (0.3T + 0.25C + 0.25R + 0.2(1 − I)) × 100
-function calculateSafetyScore(areaData) {
-  const T = parseFloat(areaData.street_lighting_score);
-  const C = parseFloat(areaData.police_presence_score);
-  const R = 1 - parseFloat(areaData.hazard_density);
-  const I = parseFloat(areaData.crime_rate);
+// Formula
+function calcSafety(a){
+  const T = parseFloat(a.street_lighting_score);
+  const C = parseFloat(a.police_presence_score);
+  const R = 1 - parseFloat(a.hazard_density);
+  const I = parseFloat(a.crime_rate);
 
-  const S = (0.3 * T + 0.25 * C + 0.25 * R + 0.2 * (1 - I)) * 100;
-  return Math.round(S);
+  return Math.round((0.3*T + 0.25*C + 0.25*R + 0.2*(1-I))*100);
 }
 
-// Haversine distance in KM
-function distance(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * Math.PI / 180) *
-      Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon / 2) ** 2;
-  return +(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))).toFixed(1);
+// Distance
+function dist(lat1,lon1,lat2,lon2){
+  const R=6371;
+  const dLat=(lat2-lat1)*Math.PI/180;
+  const dLon=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2 +
+    Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180) *
+    Math.sin(dLon/2)**2;
+  return +(R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))).toFixed(1);
 }
 
-function getRandomArea(safetyData) {
-  const keys = Object.keys(safetyData);
-  return keys[Math.floor(Math.random() * keys.length)];
+// Find REAL nearest area
+function nearestArea(data, lat, lng){
+  let best=null, bestD=999999;
+
+  for(const key in data){
+    const a=data[key];
+    const d=dist(lat,lng,parseFloat(a.latitude),parseFloat(a.longitude));
+    if(d<bestD){
+      bestD=d;
+      best=key;
+    }
+  }
+  return best;
 }
 
-function ecoScore(distance, safer) {
-  const base = (distance / 10) * 2.5;
-  return safer ? (base * 0.85).toFixed(2) : base.toFixed(2);
+function ecoScore(d, safer){
+  const base=(d/10)*2.5;
+  return safer ? (base*0.85).toFixed(2) : base.toFixed(2);
 }
 
-function renderRoute(route, recommended) {
-  const box = document.createElement("div");
-  box.className = "route-card";
-  box.style.position = "relative";
+function renderRoute(r, recommended){
+  let box=document.createElement("div");
+  box.className="route-card";
 
-  let badge = recommended ? `<div class="recommended-badge">⭐ AI Recommended</div>` : "";
+  let dogTag="";
+  if(r.dogRisk === "high"){
+    dogTag=`<span class="tag dog-risk">🐕 Dog Risk Zone</span>`;
+  } else {
+    dogTag=`<span class="tag">🐾 Low Dog Risk</span>`;
+  }
+
+  let rec = recommended ?
+    `<div class="recommended-badge">⭐ Recommended</div>` : "";
 
   box.innerHTML = `
-    ${badge}
-    <h3>${route.type === "safer" ? "🛡️ Safer Route" : "🚀 Fastest Route"}</h3>
-    <p>via ${route.via}</p>
+    ${rec}
+    <h3>${r.type === "safer" ? "🛡 Safer Route" : "🚀 Fastest Route"}</h3>
+    <p>via ${r.via}</p>
+
+    ${dogTag}
 
     <div class="metric">
       <div class="metric-label">Distance</div>
-      <div class="metric-value">${route.distance} km</div>
+      <div class="metric-value">${r.distance} km</div>
     </div>
 
     <div class="metric">
-      <div class="metric-label">ETA</div>
-      <div class="metric-value">${route.time} min</div>
+      <div class="metric-label">Time</div>
+      <div class="metric-value">${r.time} min</div>
     </div>
 
     <div class="metric">
       <div class="metric-label">Safety Score</div>
-      <div class="metric-value">${route.safetyScore}%</div>
+      <div class="metric-value">${r.safety}%</div>
     </div>
 
     <div class="metric">
       <div class="metric-label">CO₂ Emission</div>
-      <div class="metric-value">${route.ecoScore} kg</div>
+      <div class="metric-value">${r.eco} kg</div>
     </div>
 
-    <button class="start-btn" onclick='startJourney("${route.type}")'>
+    <button class="start-btn" onclick="startJourney('${r.type}')">
       Start Journey
     </button>
   `;
@@ -202,63 +224,60 @@ function renderRoute(route, recommended) {
   document.getElementById("routesContainer").appendChild(box);
 }
 
-function startJourney(type) {
+function startJourney(type){
   localStorage.setItem("active_route_type", type);
-  localStorage.setItem("journey_start_time", Date.now());
-  window.location.href = "journey.html";
+  window.location.href="journey.html";
 }
 
 // MAIN
-async function loadRoutes() {
-  const safetyData = await loadSafetyData();
+(async function(){
+  const data = await loadSafetyCSV();
 
-  const dist = distance(fromLat, fromLng, toLat, toLng);
+  const totalDist = dist(fromLat, fromLng, toLat, toLng);
+  const midLat = (fromLat + toLat)/2;
+  const midLng = (fromLng + toLng)/2;
 
-  // Fastest
-  const fastestVia = getRandomArea(safetyData);
+  const viaFast = nearestArea(data, midLat, midLng);
+  const viaSafe = nearestArea(data, fromLat + 0.01, fromLng + 0.01);
+
+  const fastData = data[viaFast];
+  const safeData = data[viaSafe];
+
   const fastest = {
-    type: "fastest",
-    distance: dist,
-    time: Math.round(dist * 2.3),
-    via: fastestVia,
-    safetyScore: calculateSafetyScore(safetyData[fastestVia]),
-    ecoScore: ecoScore(dist, false)
+    type:"fastest",
+    via:viaFast,
+    distance: totalDist,
+    time: Math.round(totalDist*2.2),
+    safety: calcSafety(fastData),
+    eco: ecoScore(totalDist,false),
+    dogRisk: fastData.dog_attacks_reported > 10 ? "high":"low"
   };
 
-  // Safer
-  const saferVia = getRandomArea(safetyData);
   const safer = {
-    type: "safer",
-    distance: +(dist * 1.12).toFixed(1),
-    time: Math.round(dist * 1.12 * 2.5),
-    via: saferVia,
-    safetyScore: calculateSafetyScore(safetyData[saferVia]),
-    ecoScore: ecoScore(dist * 1.12, true)
+    type:"safer",
+    via:viaSafe,
+    distance: +(totalDist*1.1).toFixed(1),
+    time: Math.round(totalDist*1.1*2.5),
+    safety: calcSafety(safeData),
+    eco: ecoScore(totalDist*1.1,true),
+    dogRisk: safeData.dog_attacks_reported > 10 ? "high":"low"
   };
 
-  // Recommended route logic
-  let recommended = "fastest";
-  if (priority === "safest") recommended = "safer";
-  else if (priority === "greenest") recommended = safer.ecoScore < fastest.ecoScore ? "safer" : "fastest";
-  else if (priority === "balanced")
-    recommended = safer.safetyScore > fastest.safetyScore ? "safer" : "fastest";
+  // Priorities
+  let rec="fastest";
+  if(priority==="safest") rec="safer";
+  else if(priority==="greenest") rec = safer.eco < fastest.eco ? "safer" : "fastest";
+  else if(priority==="balanced") rec = safer.safety > fastest.safety ? "safer":"fastest";
 
-  // Render
-  renderRoute(fastest, recommended === "fastest");
-  renderRoute(safer, recommended === "safer");
+  renderRoute(fastest, rec==="fastest");
+  renderRoute(safer, rec==="safer");
 
-  // Tip
   document.getElementById("aiTip").innerText =
-    recommended === "safer"
-      ? "💡 Safer route chosen due to higher safety score."
-      : "⚡ Fastest route recommended based on ETA.";
-}
-
-loadRoutes();
+    rec==="safer"
+    ? "💡 Safer route chosen due to better safety score."
+    : "⚡ Fastest route recommended based on ETA.";
+})();
 </script>
 
 </body>
 </html>
-
-
-
