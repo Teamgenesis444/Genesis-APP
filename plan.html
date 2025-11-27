@@ -80,6 +80,7 @@
   <label>To:</label>
   <input type="text" id="to" placeholder="Destination...">
 
+  <!-- 
   <label>Priority:</label>
   <select id="priority">
     <option value="balanced">🌿 Balanced</option>
@@ -87,6 +88,7 @@
     <option value="greenest">🌱 Eco Route</option>
     <option value="safest">🛡 Safest</option>
   </select>
+  -->
 
   <button class="primary" onclick="planJourney()">🔍 Plan Route</button>
   <button class="compare-btn" id="compareBtn" onclick="goToCompare()">🔀 Compare Routes</button>
@@ -203,7 +205,8 @@ async function drawRoute(){
 }
 
 function goToCompare(){
-  const priority = document.getElementById("priority").value;
+  // default since priority is commented out
+  const priority = "balanced";
 
   localStorage.setItem("journey_from", document.getElementById("from").value);
   localStorage.setItem("journey_to", document.getElementById("to").value);
